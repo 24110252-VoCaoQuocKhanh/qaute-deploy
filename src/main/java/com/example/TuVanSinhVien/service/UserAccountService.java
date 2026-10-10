@@ -59,6 +59,8 @@ public class UserAccountService {
     }
 
     private TaiKhoan createBaseAccount(String username, String password, String fullName, String email, String phone, String role) {
+        AccountInput.identity(username, fullName, email, phone);
+        AccountInput.password(password);
         String normalizedUsername = required(username, "Tên đăng nhập");
         String normalizedEmail = required(email, "Email").toLowerCase();
         if (password == null || !password.matches("^(?=.*[A-Za-z])(?=.*\\d).{8,72}$")) {
@@ -76,8 +78,11 @@ public class UserAccountService {
     @Transactional
     public TaiKhoan createStudent(String username, String password, String fullName, String email, String phone,
                                   String studentCode, String faculty, String major, String className, String course) {
+        AccountInput.identity(username, fullName, email, phone);
+        AccountInput.password(password);
         String normalizedUsername = required(username, "Tên đăng nhập");
         String normalizedEmail = required(email, "Email").toLowerCase();
+        AccountInput.student(studentCode, faculty, major, className, course);
         String normalizedStudentCode = required(studentCode, "MSSV").toUpperCase();
         if (password == null || !password.matches("^(?=.*[A-Za-z])(?=.*\\d).{8,72}$")) {
             throw new IllegalArgumentException("Mật khẩu phải dài 8–72 ký tự, có chữ và số.");

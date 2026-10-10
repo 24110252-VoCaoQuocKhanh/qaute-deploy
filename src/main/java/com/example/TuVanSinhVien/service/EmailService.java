@@ -45,7 +45,7 @@ public class EmailService {
                     + "</span>"
                     + "</div>"
                     + "<p style=\"font-size: 14px; color: #ef4444; font-weight: 500;\">Lưu ý: Mã xác thực có hiệu lực trong <strong>" + expiryMinutes + " phút</strong>. Tuyệt đối không chia sẻ mã này cho bất kỳ ai khác.</p>"
-                    + "<p style=\"font-size: 13px; color: #94a3b8;\">Nếu bạn không yêu cầu đăng ký tài khoản này, vui lòng bỏ qua email này.</p>"
+                    + "<p style=\"font-size: 13px; color: #94a3b8;\">Nếu bạn không yêu cầu mã xác minh này, vui lòng bỏ qua email này.</p>"
                     + "</div>"
                     + "<div style=\"text-align: center; margin-top: 20px; font-size: 12px; color: #94a3b8;\">"
                     + "&copy; 2026 QAUTE - Trường Đại học Công nghệ Kỹ thuật TP.HCM. All rights reserved."

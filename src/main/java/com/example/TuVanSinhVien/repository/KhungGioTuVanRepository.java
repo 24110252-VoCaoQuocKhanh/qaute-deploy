@@ -14,10 +14,12 @@ public interface KhungGioTuVanRepository extends JpaRepository<KhungGioTuVan, In
 
     List<KhungGioTuVan> findByNguoiTuVan_MaCVOrderByBatDauAsc(Integer maCV);
 
-    @Query("SELECT k FROM KhungGioTuVan k WHERE k.trangThai = 'Mo' AND k.nguoiTuVan.nhanTuVan = true AND k.nguoiTuVan.taiKhoan.trangThai = 'HoatDong' AND k.nguoiTuVan.taiKhoan.vaiTro = 'CoVan' AND k.nguoiTuVan.donVi.hoatDong = true AND k.batDau >= :fromTime AND k.batDau <= :toTime ORDER BY k.batDau ASC")
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths={"nguoiTuVan.taiKhoan", "nguoiTuVan.donVi"})
+    @Query("SELECT k FROM KhungGioTuVan k WHERE k.trangThai = 'Mo' AND k.nguoiTuVan.nhanTuVan = true AND k.nguoiTuVan.taiKhoan.trangThai = 'HoatDong' AND k.nguoiTuVan.taiKhoan.vaiTro = 'CoVan' AND k.nguoiTuVan.donVi.hoatDong = true AND k.batDau >= :fromTime AND k.batDau <= :toTime AND NOT EXISTS (SELECT l.maLichHen FROM LichHenTuVan l WHERE l.khungGio = k AND l.trangThai IN ('ChoDuyet', 'DaXacNhan', 'HoanThanh')) ORDER BY k.batDau ASC")
     List<KhungGioTuVan> findAvailableSlotsWithinWindow(@Param("fromTime") LocalDateTime fromTime, @Param("toTime") LocalDateTime toTime);
 
-    @Query("SELECT k FROM KhungGioTuVan k WHERE k.nguoiTuVan.maCV = :maCV AND k.trangThai = 'Mo' AND k.nguoiTuVan.nhanTuVan = true AND k.nguoiTuVan.taiKhoan.trangThai = 'HoatDong' AND k.nguoiTuVan.taiKhoan.vaiTro = 'CoVan' AND k.nguoiTuVan.donVi.hoatDong = true AND k.batDau >= :fromTime AND k.batDau <= :toTime ORDER BY k.batDau ASC")
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths={"nguoiTuVan.taiKhoan", "nguoiTuVan.donVi"})
+    @Query("SELECT k FROM KhungGioTuVan k WHERE k.nguoiTuVan.maCV = :maCV AND k.trangThai = 'Mo' AND k.nguoiTuVan.nhanTuVan = true AND k.nguoiTuVan.taiKhoan.trangThai = 'HoatDong' AND k.nguoiTuVan.taiKhoan.vaiTro = 'CoVan' AND k.nguoiTuVan.donVi.hoatDong = true AND k.batDau >= :fromTime AND k.batDau <= :toTime AND NOT EXISTS (SELECT l.maLichHen FROM LichHenTuVan l WHERE l.khungGio = k AND l.trangThai IN ('ChoDuyet', 'DaXacNhan', 'HoanThanh')) ORDER BY k.batDau ASC")
     List<KhungGioTuVan> findAvailableSlotsByAdvisor(@Param("maCV") Integer maCV, @Param("fromTime") LocalDateTime fromTime, @Param("toTime") LocalDateTime toTime);
 
     @Query("SELECT COUNT(k) > 0 FROM KhungGioTuVan k WHERE k.nguoiTuVan.maCV = :maCV AND k.trangThai = 'Mo' AND k.nguoiTuVan.nhanTuVan = true AND k.nguoiTuVan.taiKhoan.trangThai = 'HoatDong' AND k.nguoiTuVan.taiKhoan.vaiTro = 'CoVan' AND k.nguoiTuVan.donVi.hoatDong = true AND k.batDau < :end AND k.ketThuc > :start")

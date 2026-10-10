@@ -57,12 +57,24 @@ public class HomeController {
     public String articleDetail(@PathVariable Integer id, Model model) {
         BaiVietHuongDan article = contentService.getArticleAndIncrementView(id);
         if (article == null) {
-            return "redirect:/articles";
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND);
         }
         model.addAttribute("article", article);
         model.addAttribute("recentArticles", contentService.getPublicArticles(null, null));
         model.addAttribute("attachments", attachmentService.getArticleAttachments(id));
         return "public/article-detail";
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/faq/{id}/view")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public java.util.Map<String,Integer> faqView(@PathVariable Integer id, jakarta.servlet.http.HttpSession session) {
+        synchronized(session) {
+            @SuppressWarnings("unchecked")
+            java.util.Set<Integer> seen = (java.util.Set<Integer>) session.getAttribute("FAQ_VIEWS");
+            if (seen == null) { seen = new java.util.HashSet<>(); session.setAttribute("FAQ_VIEWS", seen); }
+            if (!seen.contains(id) && seen.size() < 500) { contentService.incrementFaqView(id); seen.add(id); }
+            return java.util.Map.of("views", contentService.publicFaqViews(id));
+        }
     }
 
     @GetMapping("/advisors")

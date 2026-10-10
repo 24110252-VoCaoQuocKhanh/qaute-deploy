@@ -67,6 +67,7 @@
         </div>
     </div>
 </div>
+<%@ include file="/WEB-INF/jsp/fragments/admin-pagination.jspf" %>
 <%@ include file="/WEB-INF/jsp/fragments/footer.jspf" %>
 </body>
 </html>

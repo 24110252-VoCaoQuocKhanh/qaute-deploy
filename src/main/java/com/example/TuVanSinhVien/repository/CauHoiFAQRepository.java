@@ -19,4 +19,14 @@ public interface CauHoiFAQRepository extends JpaRepository<CauHoiFAQ, Integer> {
     List<CauHoiFAQ> searchPublicFaq(@Param("kw") String keyword);
 
     List<CauHoiFAQ> findByTrangThai(String trangThai);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "linhVuc")
+    @Query("SELECT f FROM CauHoiFAQ f WHERE f.trangThai='HienThi' AND (:fieldId IS NULL OR f.linhVuc.maLinhVuc=:fieldId) AND (LOWER(f.cauHoi) LIKE LOWER(CONCAT('%', :kw, '%')) OR LOWER(f.cauTraLoi) LIKE LOWER(CONCAT('%', :kw, '%')) OR LOWER(f.tuKhoa) LIKE LOWER(CONCAT('%', :kw, '%'))) ORDER BY f.luotXem DESC, f.maFAQ DESC")
+    List<CauHoiFAQ> searchPublic(@Param("fieldId") Integer fieldId, @Param("kw") String keyword);
+
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically=true, clearAutomatically=true)
+    @Query("UPDATE CauHoiFAQ e SET e.luotXem=e.luotXem+1 WHERE e.maFAQ=:id AND e.trangThai='HienThi'")
+    int incrementPublicView(@Param("id") Integer id);
+
+    java.util.Optional<CauHoiFAQ> findByMaFAQAndTrangThai(Integer id, String status);
 }

@@ -29,9 +29,10 @@
         </div>
         <div class="col-lg-6">
             <form method="get" class="d-flex gap-2" action="${pageContext.request.contextPath}/faq">
+                <input type="hidden" name="linhVuc" value="<c:out value='${selectedLinhVuc}'/>">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="kw" class="form-control border-start-0 ps-0" placeholder="Nhập từ khóa cần tìm..." value="${kw}">
+                    <input type="text" name="kw" class="form-control border-start-0 ps-0" placeholder="Nhập từ khóa cần tìm..." value="<c:out value='${kw}'/>">
                     <button type="submit" class="btn btn-primary fw-semibold px-4">Tìm kiếm</button>
                 </div>
             </form>
@@ -40,10 +41,11 @@
 
     <!-- Category filter pills -->
     <div class="d-flex flex-wrap gap-2 mb-4 pb-2 border-bottom">
-        <a href="${pageContext.request.contextPath}/faq" class="${selectedLinhVuc == null ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">
+        <c:url var="allFieldsUrl" value="/faq"><c:param name="kw" value="${kw}"/></c:url>
+        <a href="<c:out value='${allFieldsUrl}'/>" class="${selectedLinhVuc == null ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">
             Tất cả lĩnh vực
         </a>
-        <c:forEach var="lv" items="${linhVucList}"><a href="${pageContext.request.contextPath}/faq?linhVuc=${lv.maLinhVuc}" class="${selectedLinhVuc == lv.maLinhVuc ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}"><c:out value="${lv.tenLinhVuc}" /></a>
+        <c:forEach var="lv" items="${linhVucList}"><c:url var="fieldUrl" value="/faq"><c:param name="linhVuc" value="${lv.maLinhVuc}"/><c:param name="kw" value="${kw}"/></c:url><a href="<c:out value='${fieldUrl}'/>" class="${selectedLinhVuc == lv.maLinhVuc ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}"><c:out value="${lv.tenLinhVuc}" /></a>
     </c:forEach></div>
 
     <!-- FAQ List -->
@@ -64,11 +66,11 @@
                             <span><c:out value="${faq.cauHoi}" /></span>
                         </button>
                     </h2>
-                    <div class="accordion-collapse collapse" data-bs-parent="#faqAccordionPage" id="${'collapse' += faq.maFAQ}">
+                    <div data-faq-id="${faq.maFAQ}" class="accordion-collapse collapse" data-bs-parent="#faqAccordionPage" id="${'collapse' += faq.maFAQ}">
                         <div class="accordion-body text-secondary ps-4 pt-3 pb-2" style="line-height: 1.7;"><c:out value="${faq.cauTraLoi}" /></div>
                         <div class="d-flex justify-content-between align-items-center pt-2 ps-4 text-muted small border-top mt-2">
                             <span><i class="bi bi-tag me-1"></i><span><c:out value="${faq.linhVuc.tenLinhVuc}" /></span></span>
-                            <span><i class="bi bi-eye me-1"></i><span><c:out value="${faq.luotXem}" /></span> lượt xem</span>
+                            <span><i class="bi bi-eye me-1"></i><span data-faq-views><c:out value="${faq.luotXem}" /></span> lượt xem</span>
                         </div>
                     </div>
                 </div>
@@ -130,6 +132,8 @@
     </div>
 </div>
 
+<form id="faqViewToken" hidden data-context="${pageContext.request.contextPath}"><sec:csrfInput/></form>
+<script src="${pageContext.request.contextPath}/js/qaute-faq.js?v=20261011" defer></script>
 <%@ include file="/WEB-INF/jsp/fragments/footer.jspf" %>
 
 </body>

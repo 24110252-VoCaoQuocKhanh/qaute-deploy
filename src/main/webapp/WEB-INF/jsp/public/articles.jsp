@@ -27,9 +27,10 @@
         </div>
         <div class="col-lg-6">
             <form method="get" class="d-flex gap-2" action="${pageContext.request.contextPath}/articles">
+                <input type="hidden" name="linhVuc" value="<c:out value='${selectedLinhVuc}'/>">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="kw" class="form-control border-start-0 ps-0" placeholder="Tìm bài viết hướng dẫn..." value="${kw}">
+                    <input type="text" name="kw" class="form-control border-start-0 ps-0" placeholder="Tìm bài viết hướng dẫn..." value="<c:out value='${kw}'/>">
                     <button type="submit" class="btn btn-primary fw-semibold px-4">Tìm kiếm</button>
                 </div>
             </form>
@@ -37,10 +38,11 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2 mb-4 pb-2 border-bottom">
-        <a href="${pageContext.request.contextPath}/articles" class="${selectedLinhVuc == null ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">
+        <c:url var="allFieldsUrl" value="/articles"><c:param name="kw" value="${kw}"/></c:url>
+        <a href="<c:out value='${allFieldsUrl}'/>" class="${selectedLinhVuc == null ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">
             Tất cả chủ đề
         </a>
-        <c:forEach var="lv" items="${linhVucList}"><a href="${pageContext.request.contextPath}/articles?linhVuc=${lv.maLinhVuc}" class="${selectedLinhVuc == lv.maLinhVuc ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}"><c:out value="${lv.tenLinhVuc}" /></a>
+        <c:forEach var="lv" items="${linhVucList}"><c:url var="fieldUrl" value="/articles"><c:param name="linhVuc" value="${lv.maLinhVuc}"/><c:param name="kw" value="${kw}"/></c:url><a href="<c:out value='${fieldUrl}'/>" class="${selectedLinhVuc == lv.maLinhVuc ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}"><c:out value="${lv.tenLinhVuc}" /></a>
     </c:forEach></div>
 
     <div class="row g-4">

@@ -11,7 +11,8 @@
         if(input) input.value=trigger?.dataset.officeStart || '';
         if(label) label.textContent=trigger?.dataset.officeLabel || '';
     });
-    let busy=false, pending=false, stopped=false, lastRefresh=0, connected=false, refreshController;
+    let busy=false, pending=false, stopped=false, lastRefresh=Date.now(), connected=false, refreshController, debounce;
+    function scheduleRefresh() { pending=true; clearTimeout(debounce); debounce=setTimeout(refresh, 500); }
     // Do not let an old refresh race a form POST or consume its redirect flash message.
     document.addEventListener('submit',event=>{
         if(root.contains(event.target)) { stopped=true; refreshController?.abort(); }
@@ -25,7 +26,8 @@
         busy=true; pending=false;
         try {
             refreshController=new AbortController();
-            const response=await fetch(location.href,{credentials:'same-origin',cache:'no-store',signal:refreshController.signal,headers:{'X-Requested-With':'XMLHttpRequest'}});
+            const url=new URL(location.href); url.pathname=url.pathname.replace(/\/$/,'')+'/live';
+            const response=await fetch(url.toString(),{credentials:'same-origin',cache:'no-store',signal:refreshController.signal,headers:{'X-Requested-With':'XMLHttpRequest'}});
             if(response.status===401 || response.status===403 || response.redirected && new URL(response.url).pathname.endsWith('/login')) {
                 stopped=true; status('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'); return;
             }
@@ -46,7 +48,7 @@
             }
             lastRefresh=Date.now();
             status((connected?'Đang cập nhật trực tiếp':'Cập nhật tự động dự phòng')+' · '+new Date().toLocaleTimeString('vi-VN'));
-        } catch (_) { pending=true; status('Chưa cập nhật được lịch. Hệ thống sẽ tự thử lại.'); }
+        } catch (_) { pending=false; lastRefresh=Date.now(); connected=false; status('Chưa cập nhật được lịch. Hệ thống sẽ tự thử lại.'); }
         finally { busy=false; }
     }
     if(new URL(location.href).searchParams.get('tab')==='book') {
@@ -55,13 +57,13 @@
     }
     if(window.StompJs && window.SockJS) {
         const client=new window.StompJs.Client({webSocketFactory:()=>new window.SockJS(context+'/ws'),reconnectDelay:5000});
-        client.onConnect=()=>{ connected=true; client.subscribe('/queue/appointments',()=>refresh()); refresh(); };
+        client.onConnect=()=>{ connected=true; client.subscribe('/queue/appointments',scheduleRefresh); scheduleRefresh(); };
         client.onWebSocketClose=()=>{ connected=false; status('Đang kết nối lại; lịch vẫn tự cập nhật dự phòng.'); };
         client.onStompError=()=>{ connected=false; };
         client.activate();
         window.addEventListener('pagehide',()=>client.deactivate());
     } else status('Cập nhật tự động dự phòng.');
-    setInterval(()=>{ if(pending || Date.now()-lastRefresh>30000) refresh(); },5000);
+    setInterval(()=>{ if(pending || !connected && Date.now()-lastRefresh>30000) refresh(); },5000);
     document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
     document.addEventListener('hidden.bs.modal',()=>{ if(pending) refresh(); });
 })();

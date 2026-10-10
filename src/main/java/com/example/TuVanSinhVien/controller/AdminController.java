@@ -76,10 +76,13 @@ public class AdminController {
     }
 
     @GetMapping("/tickets")
-    public String tickets(Model model) {
-        model.addAttribute("tickets", ticketService.getAllTickets());
+    public String tickets(@RequestParam(defaultValue="0") int page, Model model) {
+        var result=ticketService.getAdminPage(page);
+        model.addAttribute("tickets", result.getContent());
+        model.addAttribute("pageData", result);
+        model.addAttribute("paginationPath", "/admin/tickets");
         model.addAttribute("advisors", nguoiTuVanRepo.findAllWithAccountAndUnit());
-        model.addAttribute("forumVisibility", forumService.visibilityByQuestion());
+        model.addAttribute("forumVisibility", forumService.visibilityByQuestion(result.getContent().stream().map(t -> t.getMaYeuCau()).toList()));
         return "admin/tickets";
     }
 
@@ -116,17 +119,21 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public String users(@RequestParam(required = false) String role, Model model) {
-        if (role != null && !role.isEmpty()) {
-            model.addAttribute("users", taiKhoanRepo.findByVaiTro(role));
-        } else {
-            model.addAttribute("users", taiKhoanRepo.findAll());
+    public String users(@RequestParam(required = false) String role, @RequestParam(defaultValue="0") int page, Model model) {
+        String filter=role!=null && java.util.Set.of("Admin","CoVan","SinhVien").contains(role)?role:null;
+        var pageable=org.springframework.data.domain.PageRequest.of(Math.max(0,page),20,org.springframework.data.domain.Sort.by("maTK").descending());
+        var result=filter==null?taiKhoanRepo.findAll(pageable):taiKhoanRepo.findByVaiTro(filter,pageable);
+        if(result.getTotalPages()>0 && page>=result.getTotalPages()) {
+            pageable=org.springframework.data.domain.PageRequest.of(result.getTotalPages()-1,20,org.springframework.data.domain.Sort.by("maTK").descending());
+            result=filter==null?taiKhoanRepo.findAll(pageable):taiKhoanRepo.findByVaiTro(filter,pageable);
         }
+        model.addAttribute("users",result.getContent()); model.addAttribute("pageData",result);
+        model.addAttribute("paginationPath","/admin/users");
         Map<Integer, NguoiTuVan> advisorProfiles = nguoiTuVanRepo.findAllWithAccountAndUnit().stream()
                 .collect(Collectors.toMap(advisor -> advisor.getTaiKhoan().getMaTK(), Function.identity()));
         model.addAttribute("advisorProfiles", advisorProfiles);
         model.addAttribute("units", catalogService.getAllActiveDonVi());
-        model.addAttribute("selectedRole", role);
+        model.addAttribute("selectedRole", filter);
         return "admin/users";
     }
 

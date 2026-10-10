@@ -22,6 +22,14 @@ public class ForumService {
             .forEach(row -> result.put(((Number)row.get("MaYeuCau")).intValue(), (Boolean)row.get("HienThi")));
         return result;
     }
+    public Map<Integer,Boolean> visibilityByQuestion(java.util.Collection<Integer> ids) {
+        Map<Integer,Boolean> result = new java.util.HashMap<>();
+        if(ids.isEmpty()) return result;
+        String placeholders=String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
+        jdbc.queryForList("SELECT MaYeuCau,HienThi FROM dbo.CauHoiDienDan WHERE MaYeuCau IN ("+placeholders+")",ids.toArray())
+            .forEach(row -> result.put(((Number)row.get("MaYeuCau")).intValue(), (Boolean)row.get("HienThi")));
+        return result;
+    }
     @Transactional
     public void setVisibility(Integer id, boolean visible, Integer adminId, String reason) {
         String note = reason == null ? "" : reason.strip();

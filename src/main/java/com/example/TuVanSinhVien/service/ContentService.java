@@ -18,42 +18,25 @@ public class ContentService {
     private final BaiVietHuongDanRepository articleRepo;
     private final LinhVucTuVanRepository fieldRepo;
 
-    public List<CauHoiFAQ> getPublicFaqs(Integer maLinhVuc, String keyword) {
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            return faqRepo.searchPublicFaq(keyword.trim());
-        }
-        if (maLinhVuc != null && maLinhVuc > 0) {
-            return faqRepo.findByTrangThaiAndLinhVuc_MaLinhVucOrderByLuotXemDesc("HienThi", maLinhVuc);
-        }
-        return faqRepo.findByTrangThaiOrderByLuotXemDesc("HienThi");
+    public List<CauHoiFAQ> getPublicFaqs(Integer field, String keyword) {
+        return faqRepo.searchPublic(field != null && field > 0 ? field : null, keyword == null ? "" : keyword.trim());
     }
-
-    public List<BaiVietHuongDan> getPublicArticles(Integer maLinhVuc, String keyword) {
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            return articleRepo.searchPublicArticles(keyword.trim());
-        }
-        if (maLinhVuc != null && maLinhVuc > 0) {
-            return articleRepo.findByTrangThaiAndLinhVuc_MaLinhVucOrderByNgayDangDesc("XuatBan", maLinhVuc);
-        }
-        return articleRepo.findByTrangThaiOrderByNgayDangDesc("XuatBan");
+    public List<BaiVietHuongDan> getPublicArticles(Integer field, String keyword) {
+        return articleRepo.searchPublic(field != null && field > 0 ? field : null, keyword == null ? "" : keyword.trim());
     }
-
     @Transactional
     public BaiVietHuongDan getArticleAndIncrementView(Integer id) {
-        BaiVietHuongDan article = articleRepo.findById(id).orElse(null);
-        if (article != null) {
-            article.setLuotXem(article.getLuotXem() + 1);
-            articleRepo.save(article);
-        }
-        return article;
+        if (articleRepo.incrementPublicView(id) != 1) return null;
+        return articleRepo.findByMaBaiVietAndTrangThai(id, "XuatBan").orElse(null);
     }
-
     @Transactional
     public void incrementFaqView(Integer id) {
-        faqRepo.findById(id).ifPresent(f -> {
-            f.setLuotXem(f.getLuotXem() + 1);
-            faqRepo.save(f);
-        });
+        if (faqRepo.incrementPublicView(id) != 1)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND);
+    }
+    public int publicFaqViews(Integer id) {
+        return faqRepo.findByMaFAQAndTrangThai(id,"HienThi")
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND)).getLuotXem();
     }
 
     @Transactional

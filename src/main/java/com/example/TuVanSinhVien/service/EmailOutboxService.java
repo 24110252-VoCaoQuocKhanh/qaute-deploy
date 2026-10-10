@@ -38,18 +38,29 @@ public class EmailOutboxService {
     public void processDueEmails() {
         if (!enabled) return;
         for (int i=0; i<20; i++) {
-            Boolean found=transaction.execute(status -> processOne());
-            if (!Boolean.TRUE.equals(found)) break;
+            Map<String,Object> claimed=transaction.execute(status -> claimOne());
+            if (claimed == null) break;
+            deliver(claimed);
         }
     }
 
-    private boolean processOne() {
+    private Map<String,Object> claimOne() {
         LocalDateTime now=LocalDateTime.now(clock);
         var rows=jdbc.queryForList("SELECT TOP (1) MaSuKien,Payload,SoLanThu FROM dbo.HangDoiSuKien WITH (UPDLOCK,READPAST,READCOMMITTEDLOCK) "
                 + "WHERE LoaiSuKien='SLA_EMAIL' AND TrangThai='ChoXuLy' AND XuLySau<=? ORDER BY MaSuKien",now);
-        if (rows.isEmpty()) return false;
+        if (rows.isEmpty()) return null;
         var row=rows.getFirst();
         int attempts=((Number)row.get("SoLanThu")).intValue()+1;
+        // Release the connection before network I/O. A crashed worker's lease expires.
+        jdbc.update("UPDATE dbo.HangDoiSuKien SET SoLanThu=?,XuLySau=? WHERE MaSuKien=?",
+                attempts,now.plusMinutes(10),row.get("MaSuKien"));
+        var claimed=new java.util.HashMap<String,Object>(row);
+        claimed.put("SoLanThu",attempts);
+        return claimed;
+    }
+
+    private void deliver(Map<String,Object> row) {
+        int attempts=((Number)row.get("SoLanThu")).intValue();
         boolean success=false;
         try {
             var payload=json.readTree((String)row.get("Payload"));
@@ -58,9 +69,17 @@ public class EmailOutboxService {
             org.slf4j.LoggerFactory.getLogger(getClass()).warn("Email outbox #{} chưa gửi được.",row.get("MaSuKien"));
         }
         String state=success ? "ThanhCong" : attempts>=5 ? "ThatBai" : "ChoXuLy";
-        jdbc.update("UPDATE dbo.HangDoiSuKien SET TrangThai=?,SoLanThu=?,XuLySau=?,LoiCuoi=? WHERE MaSuKien=?",state,attempts,
-                now.plusMinutes(5L << (attempts-1)),success?null:"Dịch vụ email chưa gửi thành công",row.get("MaSuKien"));
+        final boolean delivered=success;
+        transaction.executeWithoutResult(status -> jdbc.update("UPDATE dbo.HangDoiSuKien SET TrangThai=?,SoLanThu=?,XuLySau=?,LoiCuoi=? WHERE MaSuKien=? AND TrangThai='ChoXuLy' AND SoLanThu=?",state,attempts,
+                LocalDateTime.now(clock).plusMinutes(5L << Math.min(attempts-1,6)),delivered?null:"Dịch vụ email chưa gửi thành công",row.get("MaSuKien"),attempts));
         if (!success && attempts>=5) org.slf4j.LoggerFactory.getLogger(getClass()).error("Email SLA outbox #{} thất bại sau 5 lần; cần kiểm tra cấu hình email.",row.get("MaSuKien"));
-        return true;
+    }
+
+    public java.util.List<Map<String,Object>> failedEmails(int page) {
+        return jdbc.queryForList("SELECT MaSuKien,NgayTao,SoLanThu,LoiCuoi FROM dbo.HangDoiSuKien WHERE LoaiSuKien='SLA_EMAIL' AND TrangThai='ThatBai' ORDER BY MaSuKien DESC OFFSET ? ROWS FETCH NEXT 20 ROWS ONLY",Math.max(0,page)*20);
+    }
+    @Transactional public void retryFailed(long id) {
+        if(jdbc.update("UPDATE dbo.HangDoiSuKien SET TrangThai='ChoXuLy',SoLanThu=0,XuLySau=?,LoiCuoi=NULL WHERE MaSuKien=? AND LoaiSuKien='SLA_EMAIL' AND TrangThai='ThatBai'",LocalDateTime.now(clock),id)!=1)
+            throw new IllegalArgumentException("Email không còn ở trạng thái thất bại.");
     }
 }

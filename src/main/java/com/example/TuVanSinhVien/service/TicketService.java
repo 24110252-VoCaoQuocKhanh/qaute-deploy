@@ -238,6 +238,13 @@ public class TicketService {
         return ticket;
     }
 
+    public org.springframework.data.domain.Page<YeuCauTuVan> getAdminPage(int page) {
+        var result = ticketRepo.findAdminPage(org.springframework.data.domain.PageRequest.of(Math.max(0,page),20));
+        if (result.getTotalPages()>0 && page>=result.getTotalPages())
+            return ticketRepo.findAdminPage(org.springframework.data.domain.PageRequest.of(result.getTotalPages()-1,20));
+        return result;
+    }
+
     public List<YeuCauTuVan> getAllTickets() {
         return ticketRepo.findAll();
     }

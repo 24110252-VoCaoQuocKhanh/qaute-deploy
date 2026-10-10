@@ -12,6 +12,11 @@ import java.util.List;
 @Repository
 public interface YeuCauTuVanRepository extends org.springframework.data.jpa.repository.JpaSpecificationExecutor<YeuCauTuVan>, JpaRepository<YeuCauTuVan, Integer> {
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths={"donVi", "coVanPhuTrach.taiKhoan", "sinhVien.taiKhoan"})
+    @Query(value="SELECT y FROM YeuCauTuVan y ORDER BY CASE WHEN y.trangThai='ChoTiepNhan' THEN 0 ELSE 1 END, y.ngayTao DESC, y.maYeuCau DESC",
+           countQuery="SELECT COUNT(y) FROM YeuCauTuVan y")
+    org.springframework.data.domain.Page<YeuCauTuVan> findAdminPage(org.springframework.data.domain.Pageable pageable);
+
     List<YeuCauTuVan> findBySinhVien_MaSVOrderByNgayTaoDesc(Integer maSV);
 
     List<YeuCauTuVan> findByCoVanPhuTrach_MaCVOrderByNgayTaoDesc(Integer maCV);

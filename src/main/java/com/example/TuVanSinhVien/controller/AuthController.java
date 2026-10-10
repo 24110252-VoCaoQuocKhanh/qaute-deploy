@@ -54,6 +54,8 @@ public class AuthController {
     private final LoginAttemptService loginAttemptService;
     private final SecurityAuditService auditService;
     private final ProfileService profileService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.TuVanSinhVien.service.RegistrationCompletionService registrationCompletion;
 
 
     public AuthController(TaiKhoanRepository taiKhoanRepo,
@@ -163,12 +165,21 @@ public class AuthController {
         form.put("nganh", nganh);
         form.put("lop", lop);
         form.put("khoaHoc", khoaHoc);
+        try {
+            com.example.TuVanSinhVien.service.AccountInput.identity(tenDangNhap, hoTen, email, soDienThoai);
+            com.example.TuVanSinhVien.service.AccountInput.student(mssv, khoa, nganh, lop, khoaHoc);
+            com.example.TuVanSinhVien.service.AccountInput.password(matKhau);
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            redirectAttributes.addFlashAttribute("registrationForm", form);
+            return "redirect:/register";
+        }
         if (taiKhoanRepo.existsByTenDangNhap(tenDangNhap.trim())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên đăng nhập '" + tenDangNhap.trim() + "' đã tồn tại.");
             redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
         }
-        if (taiKhoanRepo.existsByEmail(email.trim().toLowerCase())) {
+        if (taiKhoanRepo.existsByEmail(email.trim().toLowerCase(java.util.Locale.ROOT))) {
             redirectAttributes.addFlashAttribute("errorMessage", "Email '" + email.trim() + "' đã được đăng ký.");
             redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
@@ -189,7 +200,7 @@ public class AuthController {
                 tenDangNhap.trim(),
                 passwordEncoder.encode(matKhau),
                 hoTen.trim(),
-                email.trim().toLowerCase(),
+                email.trim().toLowerCase(java.util.Locale.ROOT),
                 soDienThoai != null ? soDienThoai.trim() : null,
                 mssv.trim().toUpperCase(),
                 khoa.trim(),
@@ -237,7 +248,6 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    @Transactional
     public String handleVerifyOtp(@RequestParam String email,
                                   @RequestParam String otp,
                                   HttpServletRequest request,
@@ -246,63 +256,33 @@ public class AuthController {
 
         String clientIp = CustomAuthenticationFailureHandler.getClientIp(request);
         String userAgent = request.getHeader("User-Agent");
-        String cleanEmail = email.trim().toLowerCase();
+        String cleanEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
 
-        String purpose = "DangKy";
-
-        // 1. Xác thực OTP
-        OtpService.OtpVerificationResult result = otpService.verifyOtp(cleanEmail, purpose, otp, clientIp, userAgent);
-        if (!result.isSuccess()) {
-            redirectAttributes.addFlashAttribute("errorMessage", result.getMessage());
-            redirectAttributes.addFlashAttribute("remainingAttempts", result.getRemainingAttempts());
-            return "redirect:/verify-otp?email=" + URLEncoder.encode(cleanEmail, StandardCharsets.UTF_8);
-        }
-
-        // 2. Lấy thông tin đăng ký chờ từ session
         RegistrationRequest regDto = (RegistrationRequest) session.getAttribute(SESSION_PENDING_REG);
         if (regDto == null || !cleanEmail.equalsIgnoreCase(regDto.getEmail())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Phiên đăng ký đã hết hạn hoặc không tìm thấy dữ liệu. Vui lòng thực hiện đăng ký lại.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.");
             return "redirect:/register";
         }
-        // 3. Tạo tài khoản chính thức (Hoạt động)
-        LocalDateTime now = LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
-        TaiKhoan tk = TaiKhoan.builder()
-                .tenDangNhap(regDto.getTenDangNhap())
-                .matKhau(regDto.getMatKhau())
-                .hoTen(regDto.getHoTen())
-                .email(regDto.getEmail())
-                .soDienThoai(regDto.getSoDienThoai())
-                .vaiTro("SinhVien")
-                .trangThai("HoatDong")
-                .batBuocDoiMatKhau(false)
-                .ngayTao(now)
-                .ngayCapNhat(now)
-                .build();
-        tk = taiKhoanRepo.save(tk);
-
-        SinhVien sv = SinhVien.builder()
-                .mssv(regDto.getMssv())
-                .khoa(regDto.getKhoa())
-                .nganh(regDto.getNganh())
-                .lop(regDto.getLop())
-                .khoaHoc(regDto.getKhoaHoc())
-                .taiKhoan(tk)
-                .build();
-        sinhVienRepo.save(sv);
-
-        // 4. Cập nhật mã tài khoản vào bản ghi OTP
-        final Integer savedMaTK = tk.getMaTK();
-        otpRepo.findTopByEmailAndMucDichOrderByNgayTaoDesc(cleanEmail, "DangKy").ifPresent(record -> {
-            record.setTaiKhoan(taiKhoanRepo.findById(savedMaTK).orElse(null));
-            otpRepo.save(record);
-        });
-
-        // 5. Xóa dữ liệu tạm khỏi session
+        try {
+            var result = registrationCompletion.complete(regDto, otp, clientIp, userAgent);
+            if (!result.isSuccess()) {
+                redirectAttributes.addFlashAttribute("errorMessage", result.getMessage());
+                redirectAttributes.addFlashAttribute("remainingAttempts", result.getRemainingAttempts());
+                return "redirect:/verify-otp?email=" + URLEncoder.encode(cleanEmail, StandardCharsets.UTF_8);
+            }
+        } catch (IllegalArgumentException | org.springframework.dao.DataIntegrityViolationException ex) {
+            var form = new java.util.LinkedHashMap<String, String>();
+            form.put("tenDangNhap", regDto.getTenDangNhap()); form.put("hoTen", regDto.getHoTen());
+            form.put("email", regDto.getEmail()); form.put("soDienThoai", regDto.getSoDienThoai());
+            form.put("mssv", regDto.getMssv()); form.put("khoa", regDto.getKhoa()); form.put("nganh", regDto.getNganh());
+            form.put("lop", regDto.getLop()); form.put("khoaHoc", regDto.getKhoaHoc());
+            redirectAttributes.addFlashAttribute("registrationForm", form);
+            redirectAttributes.addFlashAttribute("errorMessage", ex instanceof IllegalArgumentException ? ex.getMessage()
+                    : "Tên đăng nhập, email hoặc MSSV đã được sử dụng. Vui lòng kiểm tra lại.");
+            session.removeAttribute(SESSION_PENDING_REG);
+            return "redirect:/register";
+        }
         session.removeAttribute(SESSION_PENDING_REG);
-
-        auditService.logEvent(tk, "KICH_HOAT_TAI_KHOAN_THANH_CONG", true, clientIp, userAgent,
-                "Kích hoạt tài khoản sinh viên thành công qua OTP: " + tk.getTenDangNhap());
-
         return "redirect:/login?registered=true";
     }
 
@@ -314,8 +294,13 @@ public class AuthController {
 
         String clientIp = CustomAuthenticationFailureHandler.getClientIp(request);
         String userAgent = request.getHeader("User-Agent");
-        String cleanEmail = email.trim().toLowerCase();
+        String cleanEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
 
+        RegistrationRequest pending = (RegistrationRequest) session.getAttribute(SESSION_PENDING_REG);
+        if (pending == null || !cleanEmail.equalsIgnoreCase(pending.getEmail())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.");
+            return "redirect:/register";
+        }
         String purpose = "DangKy";
         OtpService.OtpSendResult sendResult = otpService.generateAndSendOtp(cleanEmail, purpose, clientIp, userAgent);
         if (sendResult.isSuccess()) {
@@ -402,7 +387,7 @@ public class AuthController {
                                     HttpServletRequest request, RedirectAttributes flash) {
         if (user == null) return "redirect:/login";
         try {
-            String cleanEmail = email.trim().toLowerCase();
+            String cleanEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
             profileService.validateEmailChange(user.getMaTK(), cleanEmail, currentPassword);
             OtpService.OtpSendResult result = otpService.generateAndSendOtp(cleanEmail, "DoiEmail",
                     CustomAuthenticationFailureHandler.getClientIp(request), request.getHeader("User-Agent"));

@@ -62,6 +62,7 @@ public class ProfileService {
         if (!passwordEncoder.matches(oldPassword, account.getMatKhau())) {
             throw new IllegalArgumentException("Mật khẩu hiện tại không chính xác.");
         }
+        AccountInput.password(newPassword);
         if (!STRONG_PASSWORD.matcher(newPassword == null ? "" : newPassword).matches()) {
             throw new IllegalArgumentException("Mật khẩu mới phải dài 8–72 ký tự, có ít nhất một chữ và một số.");
         }

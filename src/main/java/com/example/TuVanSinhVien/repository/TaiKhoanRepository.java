@@ -15,6 +15,8 @@ public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, Integer> {
     Optional<TaiKhoan> findByEmail(String email);
     boolean existsByTenDangNhap(String tenDangNhap);
     boolean existsByEmail(String email);
+    org.springframework.data.domain.Page<TaiKhoan> findByVaiTro(String role, org.springframework.data.domain.Pageable pageable);
+
     List<TaiKhoan> findByVaiTro(String vaiTro);
     long countByVaiTro(String vaiTro);
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)

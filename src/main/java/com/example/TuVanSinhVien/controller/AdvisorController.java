@@ -159,6 +159,16 @@ public class AdvisorController {
         return "redirect:/advisor/slots";
     }
 
+    @GetMapping("/appointments/live")
+    public org.springframework.web.servlet.ModelAndView liveAppointments(@AuthenticationPrincipal CustomUserDetails user,
+             Model model) {
+        appointments(user, model);
+        // A direct View bypasses page decoration and returns only the calendar fragment.
+        var view=new org.springframework.web.servlet.view.JstlView("/WEB-INF/jsp/advisor/appointments-live.jsp");
+        view.setAlwaysInclude(true); view.setContentType("text/html;charset=UTF-8");
+        return new org.springframework.web.servlet.ModelAndView(view, model.asMap());
+    }
+
     @GetMapping("/appointments")
     public String appointments(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         NguoiTuVan cv = getAdvisorOrThrow(userDetails);

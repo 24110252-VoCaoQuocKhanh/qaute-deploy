@@ -67,7 +67,7 @@ public class AppointmentService {
         // Lọc bỏ slot đã có người đặt chiếm chỗ
         List<KhungGioTuVan> result = new ArrayList<>();
         for (KhungGioTuVan s : slots) {
-            if (officeHours.isOfficeInterval(s.getBatDau(),s.getKetThuc()) && !appointmentRepo.isSlotOccupied(s.getMaKhungGio())) {
+            if (officeHours.isOfficeInterval(s.getBatDau(),s.getKetThuc())) {
                 result.add(s);
             }
         }

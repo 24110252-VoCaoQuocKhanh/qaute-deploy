@@ -135,6 +135,16 @@ public class StudentController {
         return "redirect:/student/tickets/" + id;
     }
 
+    @GetMapping("/appointments/live")
+    public org.springframework.web.servlet.ModelAndView liveAppointments(@AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam(required=false) Integer maCV,  Model model) {
+        appointments(user, maCV, model);
+        // A direct View bypasses page decoration and returns only the calendar fragment.
+        var view=new org.springframework.web.servlet.view.JstlView("/WEB-INF/jsp/student/appointments-live.jsp");
+        view.setAlwaysInclude(true); view.setContentType("text/html;charset=UTF-8");
+        return new org.springframework.web.servlet.ModelAndView(view, model.asMap());
+    }
+
     @GetMapping("/appointments")
     public String appointments(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(required = false) Integer maCV, Model model) {
         SinhVien sv = getStudentOrThrow(userDetails);

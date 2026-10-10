@@ -20,4 +20,14 @@ public interface BaiVietHuongDanRepository extends JpaRepository<BaiVietHuongDan
     List<BaiVietHuongDan> searchPublicArticles(@Param("kw") String keyword);
 
     List<BaiVietHuongDan> findByTrangThai(String trangThai);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "linhVuc")
+    @Query("SELECT b FROM BaiVietHuongDan b WHERE b.trangThai='XuatBan' AND (:fieldId IS NULL OR b.linhVuc.maLinhVuc=:fieldId) AND (LOWER(b.tieuDe) LIKE LOWER(CONCAT('%', :kw, '%')) OR LOWER(b.tomTat) LIKE LOWER(CONCAT('%', :kw, '%')) OR LOWER(b.tuKhoa) LIKE LOWER(CONCAT('%', :kw, '%'))) ORDER BY b.ngayDang DESC, b.maBaiViet DESC")
+    List<BaiVietHuongDan> searchPublic(@Param("fieldId") Integer fieldId, @Param("kw") String keyword);
+
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically=true, clearAutomatically=true)
+    @Query("UPDATE BaiVietHuongDan e SET e.luotXem=e.luotXem+1 WHERE e.maBaiViet=:id AND e.trangThai='XuatBan'")
+    int incrementPublicView(@Param("id") Integer id);
+
+    java.util.Optional<BaiVietHuongDan> findByMaBaiVietAndTrangThai(Integer id, String status);
 }

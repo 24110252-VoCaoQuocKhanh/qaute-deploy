@@ -120,8 +120,8 @@ class BackendReviewRegressionTest {
         when(email.sendNotificationEmail(anyString(),anyString(),anyString())).thenReturn(false,true);
         var service=new EmailOutboxService(jdbc,email,clock,manager);
         service.processDueEmails();service.processDueEmails();
-        verify(jdbc).update(startsWith("UPDATE"),eq("ChoXuLy"),eq(1),any(LocalDateTime.class),eq("SMTP chưa gửi thành công"),eq(1L));
-        verify(jdbc).update(startsWith("UPDATE"),eq("ThanhCong"),eq(2),any(LocalDateTime.class),isNull(),eq(1L));
+        verify(jdbc).update(startsWith("UPDATE"),eq("ChoXuLy"),eq(1),any(LocalDateTime.class),eq("Dịch vụ email chưa gửi thành công"),eq(1L),eq(1));
+        verify(jdbc).update(startsWith("UPDATE"),eq("ThanhCong"),eq(2),any(LocalDateTime.class),isNull(),eq(1L),eq(2));
         verify(email,times(2)).sendNotificationEmail(anyString(),anyString(),anyString());
     }
 

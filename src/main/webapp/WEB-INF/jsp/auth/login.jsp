@@ -63,7 +63,7 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label small fw-semibold text-dark mb-0">Mật khẩu</label>
-                            <a class="text-muted small text-decoration-none" href="${pageContext.request.contextPath}/faq">Quên mật khẩu?</a>
+                            <a class="text-muted small text-decoration-none" href="${pageContext.request.contextPath}/forgot-password">Quên mật khẩu?</a>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>

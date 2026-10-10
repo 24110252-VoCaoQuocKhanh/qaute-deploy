@@ -4,6 +4,7 @@
 <c:set var="requestPath" value="${pageContext.request.requestURI}" />
 <c:set var="layoutVariant" value="qaute-content-layout" />
 <c:if test="${fn:contains(requestPath, '/login')
+              or fn:contains(requestPath, '/forgot-password')
               or fn:contains(requestPath, '/register')
               or fn:contains(requestPath, '/verify-otp')}" >
     <c:set var="layoutVariant" value="qaute-auth-layout" />

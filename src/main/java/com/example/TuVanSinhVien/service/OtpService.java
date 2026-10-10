@@ -29,6 +29,9 @@ public class OtpService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final SecurityAuditService auditService;
+    @org.springframework.beans.factory.annotation.Value("${app.otp.max-sends-per-ip-hour:30}")
+    private int maxSendsPerIpHour = 30;
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     public OtpService(YeuCauXacMinhOTPRepository otpRepo,
@@ -93,13 +96,13 @@ public class OtpService {
                     + MAX_SENDS_PER_HOUR + " lần/giờ). Vui lòng thử lại sau 1 giờ.", 0);
         }
 
-        // 2. Kiểm tra giới hạn 3 lần/giờ theo IPHash
+        // Shared networks have a separate, configurable limit.
         if (ipHash != null) {
             long ipSendsInHour = otpRepo.countByIpHashAndNgayTaoAfter(ipHash, oneHourAgo);
-            if (ipSendsInHour >= MAX_SENDS_PER_HOUR) {
-                log.warn("[OTP-RATELIMIT] IP hash {} đã vượt quá {} lần gửi OTP trong 1 giờ.", clientIp, MAX_SENDS_PER_HOUR);
+            if (ipSendsInHour >= Math.max(MAX_SENDS_PER_HOUR, maxSendsPerIpHour)) {
+                log.warn("[OTP-RATELIMIT] IP hash {} đã vượt quá {} lần gửi OTP trong 1 giờ.", clientIp, maxSendsPerIpHour);
                 auditService.logEvent(null, "GUI_OTP_THAT_BAI", false, clientIp, userAgent,
-                        "Vượt quá giới hạn " + MAX_SENDS_PER_HOUR + " lần/giờ cho IP " + clientIp);
+                        "Vượt quá giới hạn " + maxSendsPerIpHour + " lần/giờ cho IP " + clientIp);
                 return new OtpSendResult(false, "Địa chỉ mạng của bạn đã yêu cầu quá nhiều mã OTP trong 1 giờ. Vui lòng thử lại sau.", 0);
             }
         }
