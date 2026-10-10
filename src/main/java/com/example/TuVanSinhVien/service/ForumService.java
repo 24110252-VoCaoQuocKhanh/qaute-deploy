@@ -40,6 +40,30 @@ public class ForumService {
     public long count(String kw) {
         return jdbc.queryForObject("SELECT COUNT_BIG(*) FROM dbo.CauHoiDienDan f JOIN dbo.YeuCauTuVan y ON y.MaYeuCau=f.MaYeuCau WHERE f.HienThi=1 AND (y.TieuDe LIKE ? OR y.NoiDung LIKE ?)",Long.class,keyword(kw),keyword(kw));
     }
+    public Map<String,Object> dashboardSummary() {
+        Map<String,Object> summary = new java.util.LinkedHashMap<>(jdbc.queryForMap("""
+            SELECT COUNT_BIG(*) AS total,
+              COALESCE(SUM(CASE WHEN y.TrangThai='ChoTiepNhan' THEN CAST(1 AS bigint) ELSE 0 END),0) AS pending,
+              COALESCE(SUM(CASE WHEN y.TrangThai='DangXuLy' THEN CAST(1 AS bigint) ELSE 0 END),0) AS processing,
+              COALESCE(SUM(CASE WHEN y.TrangThai='DaPhanHoi' THEN CAST(1 AS bigint) ELSE 0 END),0) AS answered,
+              COALESCE(SUM(CASE WHEN y.TrangThai='Dong' THEN CAST(1 AS bigint) ELSE 0 END),0) AS closed
+            FROM dbo.CauHoiDienDan f JOIN dbo.YeuCauTuVan y ON y.MaYeuCau=f.MaYeuCau
+            WHERE f.HienThi=1
+            """));
+        Map<String,Long> units = new java.util.LinkedHashMap<>();
+        jdbc.queryForList("""
+            SELECT d.TenDonVi AS unitName, COUNT_BIG(f.MaYeuCau) AS total
+            FROM dbo.DonVi d LEFT JOIN dbo.YeuCauTuVan y ON y.MaDonVi=d.MaDonVi
+            LEFT JOIN dbo.CauHoiDienDan f ON f.MaYeuCau=y.MaYeuCau AND f.HienThi=1
+            WHERE d.HoatDong=1 OR f.MaYeuCau IS NOT NULL
+            GROUP BY d.MaDonVi,d.TenDonVi ORDER BY COUNT_BIG(f.MaYeuCau) DESC,d.TenDonVi
+            """).forEach(row -> units.put((String)row.get("unitName"), ((Number)row.get("total")).longValue()));
+        summary.put("units", units);
+        long total = ((Number) summary.get("total")).longValue();
+        long completed = ((Number) summary.get("answered")).longValue() + ((Number) summary.get("closed")).longValue();
+        summary.put("completionRate", total == 0 ? 0.0 : Math.round(1000.0 * completed / total) / 10.0);
+        return summary;
+    }
     public List<Map<String,Object>> list(String kw, int page, int size, String sort) {
         String order="views".equals(sort) ? "f.LuotXem DESC, y.NgayTao DESC, y.MaYeuCau DESC" : "y.NgayTao DESC, y.MaYeuCau DESC";
         return jdbc.queryForList(SELECT+" AND (y.TieuDe LIKE ? OR y.NoiDung LIKE ?) ORDER BY "+order+" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",keyword(kw),keyword(kw), Math.max(0,page)*Math.min(30,Math.max(1,size)),Math.min(30,Math.max(1,size)));

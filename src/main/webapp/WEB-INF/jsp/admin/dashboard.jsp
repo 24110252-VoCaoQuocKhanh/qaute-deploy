@@ -57,8 +57,8 @@
             <div class="col-md-4 text-md-end mt-4 mt-md-0">
                 <div class="bg-white bg-opacity-10 p-3 rounded-4 text-center border border-white border-opacity-10 d-inline-block" style="min-width: 220px;">
                     <small class="text-white-50 d-block mb-1">Tỷ lệ hoàn tất (QĐ22)</small>
-                    <span class="fs-1 fw-extrabold text-success"><c:out value="${summary.tyLeHoanTat += '%'}" /></span>
-                    <div class="text-white-50 small mt-1">(Đã phản hồi + Đóng) / Tổng số</div>
+                    <span class="fs-1 fw-extrabold text-success"><c:out value="${forumSummary.completionRate += '%'}" /></span>
+                    <div class="text-white-50 small mt-1">(Đã trả lời + Đã đóng) / Câu hỏi hiển thị</div>
                 </div>
             </div>
         </div>
@@ -73,8 +73,8 @@
             <div class="qaute-card p-3 border-0 shadow-sm">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="text-muted fw-medium d-block mb-1">Tổng phiếu yêu cầu</small>
-                        <h3 class="fw-bold text-dark mb-0"><c:out value="${summary.tongYeuCau}" /></h3>
+                        <small class="text-muted fw-medium d-block mb-1">Tổng câu hỏi diễn đàn</small>
+                        <h3 class="fw-bold text-dark mb-0"><c:out value="${forumSummary.total}" /></h3>
                     </div>
                     <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3">
                         <i class="bi bi-ticket-perforated fs-4"></i>
@@ -86,8 +86,8 @@
             <div class="qaute-card p-3 border-0 shadow-sm">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="text-muted fw-medium d-block mb-1">Phiếu chờ tiếp nhận</small>
-                        <h3 class="fw-bold text-warning mb-0"><c:out value="${summary.choTiepNhan}" /></h3>
+                        <small class="text-muted fw-medium d-block mb-1">Câu hỏi chờ tiếp nhận</small>
+                        <h3 class="fw-bold text-warning mb-0"><c:out value="${forumSummary.pending}" /></h3>
                     </div>
                     <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3">
                         <i class="bi bi-hourglass-split fs-4"></i>
@@ -128,7 +128,7 @@
         <!-- Doughnut Chart: Status -->
         <div class="col-lg-6">
             <div class="qaute-card p-4 border-0 shadow-sm h-100">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>Phân bổ trạng thái phiếu tư vấn</h5>
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>Trạng thái câu hỏi diễn đàn</h5>
                 <div style="max-height: 300px; position: relative;">
                     <canvas id="statusChart"></canvas>
                 </div>
@@ -138,8 +138,8 @@
         <!-- Bar Chart: Departments -->
         <div class="col-lg-6">
             <div class="qaute-card p-4 border-0 shadow-sm h-100">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line text-success me-2"></i>Khối lượng phiếu theo Đơn vị</h5>
-                <div style="max-height: 300px; position: relative;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line text-success me-2"></i>Câu hỏi diễn đàn theo khoa / đơn vị</h5>
+                <div style="height: ${fn:length(forumSummary.units) * 32 + 70}px; min-height: 300px; position: relative;">
                     <canvas id="deptChart"></canvas>
                 </div>
             </div>
@@ -151,17 +151,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
-const choTiepNhan = ${summary.choTiepNhan};
-const dangXuLy = ${summary.dangXuLy};
-const daPhanHoi = ${summary.daPhanHoi};
-const dong = ${summary.dong};
+const choTiepNhan = ${forumSummary.pending};
+const dangXuLy = ${forumSummary.processing};
+const daPhanHoi = ${forumSummary.answered};
+const dong = ${forumSummary.closed};
 
 // 1. Status Chart
 const ctxStatus = document.getElementById('statusChart').getContext('2d');
 new Chart(ctxStatus, {
     type: 'doughnut',
     data: {
-        labels: ['Chờ tiếp nhận', 'Đang xử lý', 'Đã phản hồi', 'Đã đóng'],
+        labels: ['Chờ tiếp nhận', 'Đang xử lý', 'Đã trả lời', 'Đã đóng'],
         datasets: [{
             data: [choTiepNhan, dangXuLy, daPhanHoi, dong],
             backgroundColor: ['#b91c1c', '#123b76', '#194984', '#64748B']
@@ -177,7 +177,7 @@ new Chart(ctxStatus, {
 });
 
 // 2. Department Chart
-const deptData = ${q:toJson(summary.thongKeTheoDonVi)};
+const deptData = ${q:toJson(forumSummary.units)};
 const deptLabels = Object.keys(deptData);
 const deptValues = Object.values(deptData);
 
@@ -185,19 +185,22 @@ const ctxDept = document.getElementById('deptChart').getContext('2d');
 new Chart(ctxDept, {
     type: 'bar',
     data: {
-        labels: deptLabels.length > 0 ? deptLabels : ['Khoa CNTT', 'Phòng Đào tạo', 'Phòng CTSV', 'TT Hỗ trợ SV'],
+        labels: deptLabels,
         datasets: [{
-            label: 'Số lượng phiếu tư vấn',
-            data: deptValues.length > 0 ? deptValues : [1, 1, 0, 0],
+            label: 'Số câu hỏi diễn đàn',
+            data: deptValues,
             backgroundColor: '#123b76',
             borderRadius: 6
         }]
     },
     options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            x: { beginAtZero: true, ticks: { precision: 0 } },
+            y: { ticks: { autoSkip: false } }
         }
     }
 });

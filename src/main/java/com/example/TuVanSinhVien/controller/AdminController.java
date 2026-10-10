@@ -35,6 +35,8 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.TuVanSinhVien.service.ForumService forumService;
     private final ReportService reportService;
     private final TaiKhoanRepository taiKhoanRepo;
     private final CatalogService catalogService;
@@ -52,6 +54,7 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         model.addAttribute("summary", reportService.getDashboardSummary());
+        model.addAttribute("forumSummary", forumService.dashboardSummary());
         model.addAttribute("units", catalogService.getAllDonVi());
         return "admin/dashboard";
     }
