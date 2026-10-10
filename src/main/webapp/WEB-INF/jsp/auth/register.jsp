@@ -42,33 +42,33 @@
                     <span><c:out value="${errorMessage}" /></span>
                 </div>
 
-                </c:if><form method="post" action="${pageContext.request.contextPath}/register">
+                </c:if><form method="post" action="${pageContext.request.contextPath}/register" data-khoa="${fn:escapeXml(registrationForm.khoa)}" data-nganh="${fn:escapeXml(registrationForm.nganh)}">
                     <sec:csrfInput /><h6 class="fw-bold text-primary border-bottom pb-2 mb-3">1. Thông tin đăng nhập</h6>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Tên đăng nhập *</label>
-                            <input type="text" name="tenDangNhap" class="form-control form-control-sm" placeholder="VD: sinhvien_k21" required>
+                            <input type="text" name="tenDangNhap" value="${fn:escapeXml(registrationForm.tenDangNhap)}" class="form-control form-control-sm" placeholder="VD: sinhvien_k21" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Mật khẩu *</label>
-                            <input type="password" name="matKhau" class="form-control form-control-sm" placeholder="Tối thiểu 6 ký tự" required>
+                            <input type="password" name="matKhau" class="form-control form-control-sm" placeholder="8–72 ký tự, có chữ và số" minlength="8" maxlength="72" required>
                         </div>
                     </div>
 
                     <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 pt-2">2. Thông tin cá nhân sinh viên</h6>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Họ và tên *</label>
-                        <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="Nguyễn Văn A" required>
+                        <input type="text" name="hoTen" value="${fn:escapeXml(registrationForm.hoTen)}" class="form-control form-control-sm" placeholder="Nguyễn Văn A" required>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Email trường / cá nhân *</label>
-                            <input type="email" name="email" class="form-control form-control-sm" placeholder="email@example.com" required>
+                            <input type="email" name="email" value="${fn:escapeXml(registrationForm.email)}" class="form-control form-control-sm" placeholder="email@example.com" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Số điện thoại</label>
-                            <input type="text" name="soDienThoai" class="form-control form-control-sm" placeholder="09xxxxxxxx">
+                            <input type="text" name="soDienThoai" value="${fn:escapeXml(registrationForm.soDienThoai)}" class="form-control form-control-sm" placeholder="09xxxxxxxx">
                         </div>
                     </div>
 
@@ -80,11 +80,11 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Mã số sinh viên (MSSV) *</label>
-                            <input type="text" name="mssv" class="form-control form-control-sm" placeholder="21110xxx" required>
+                            <input type="text" name="mssv" value="${fn:escapeXml(registrationForm.mssv)}" class="form-control form-control-sm" placeholder="21110xxx" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Lớp sinh hoạt *</label>
-                            <input type="text" name="lop" class="form-control form-control-sm" placeholder="VD: 21110CLC1" required>
+                            <input type="text" name="lop" value="${fn:escapeXml(registrationForm.lop)}" class="form-control form-control-sm" placeholder="VD: 21110CLC1" required>
                         </div>
                     </div>
 
@@ -132,7 +132,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Khóa học *</label>
-                            <input type="text" name="khoaHoc" class="form-control form-control-sm" placeholder="VD: K21, K22, K23..." value="K21" required>
+                            <input type="text" name="khoaHoc" class="form-control form-control-sm" placeholder="VD: K21, K22, K23..." value="${empty registrationForm ? 'K21' : fn:escapeXml(registrationForm.khoaHoc)}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Hệ đào tạo</label>
@@ -364,7 +364,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    const khoaSelect = document.getElementById('khoaSelect');
+    const savedKhoa = form ? form.dataset.khoa : '';
+    const savedNganh = form ? form.dataset.nganh : '';
+    if (savedKhoa) khoaSelect.value = savedKhoa;
     handleKhoaChange();
+    if (savedNganh) {
+        const nganhSelect = document.getElementById('nganhSelect');
+        const known = Array.from(nganhSelect.options).some(option => option.value === savedNganh);
+        nganhSelect.value = known ? savedNganh : '__OTHER__';
+        handleNganhChange();
+        if (!known) document.getElementById('nganhCustomInput').value = savedNganh;
+    }
 });
 </script>
 

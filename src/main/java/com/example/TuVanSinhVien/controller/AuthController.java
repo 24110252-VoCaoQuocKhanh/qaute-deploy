@@ -152,20 +152,35 @@ public class AuthController {
         String userAgent = request.getHeader("User-Agent");
 
         // 1. Kiểm tra trùng lặp cơ bản
+        // Only non-secret fields are flashed back after a rejected submission.
+        var form = new java.util.LinkedHashMap<String, String>();
+        form.put("tenDangNhap", tenDangNhap);
+        form.put("hoTen", hoTen);
+        form.put("email", email);
+        form.put("soDienThoai", soDienThoai == null ? "" : soDienThoai);
+        form.put("mssv", mssv);
+        form.put("khoa", khoa);
+        form.put("nganh", nganh);
+        form.put("lop", lop);
+        form.put("khoaHoc", khoaHoc);
         if (taiKhoanRepo.existsByTenDangNhap(tenDangNhap.trim())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên đăng nhập '" + tenDangNhap.trim() + "' đã tồn tại.");
+            redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
         }
         if (taiKhoanRepo.existsByEmail(email.trim().toLowerCase())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Email '" + email.trim() + "' đã được đăng ký.");
+            redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
         }
         if (sinhVienRepo.existsByMssv(mssv.trim())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Mã số sinh viên (MSSV) '" + mssv.trim() + "' đã tồn tại trong hệ thống.");
+            redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
         }
         if (matKhau == null || !matKhau.matches("^(?=.*[A-Za-z])(?=.*\\d).{8,72}$")) {
             redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu phải dài 8–72 ký tự, có ít nhất một chữ và một số.");
+            redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
         }
 
@@ -193,6 +208,7 @@ public class AuthController {
         );
         if (!sendResult.isSuccess()) {
             redirectAttributes.addFlashAttribute("errorMessage", sendResult.getMessage());
+            redirectAttributes.addFlashAttribute("registrationForm", form);
             return "redirect:/register";
         }
 
