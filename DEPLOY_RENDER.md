@@ -3,6 +3,8 @@
 Repo deploy dùng nhánh `main`, runtime **Docker**, một instance **Free** tại Singapore,
 Root Directory trống, Dockerfile Path `./Dockerfile`, Docker Command trống.
 Code được chụp từ bản đã kiểm tra của repo nhóm; hai repo không tự đồng bộ.
+Docker giải nén WAR trong build stage và chạy `WarLauncher` từ thư mục `/app`.
+Giữ Docker Command trống để dùng entrypoint này; không ghi đè bằng `java -jar`.
 
 ## Cấu hình Environment
 
