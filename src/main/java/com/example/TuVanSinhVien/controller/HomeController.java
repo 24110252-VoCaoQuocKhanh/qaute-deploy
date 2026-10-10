@@ -23,16 +23,14 @@ public class HomeController {
     private final AttachmentService attachmentService;
 
     @GetMapping("/")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String index(@RequestParam(required = false) String logout, Model model) {
         if (logout != null) {
             model.addAttribute("logoutMessage", "Bạn đã đăng xuất khỏi hệ thống thành công.");
         }
         model.addAttribute("questions", forumService.list(null, 0, 6, "latest"));
-        model.addAttribute("faqs", contentService.getPublicFaqs(null, null));
         model.addAttribute("articles", contentService.getPublicArticles(null, null));
         model.addAttribute("advisors", catalogService.getAllActiveAdvisors());
-        model.addAttribute("donViList", catalogService.getAllActiveDonVi());
-        model.addAttribute("stats", reportService.getDashboardSummary());
         return "public/index";
     }
 

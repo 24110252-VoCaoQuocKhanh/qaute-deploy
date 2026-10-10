@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface BaiVietHuongDanRepository extends JpaRepository<BaiVietHuongDan, Integer> {
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "linhVuc")
     List<BaiVietHuongDan> findByTrangThaiOrderByNgayDangDesc(String trangThai);
 
     List<BaiVietHuongDan> findByTrangThaiAndLinhVuc_MaLinhVucOrderByNgayDangDesc(String trangThai, Integer maLinhVuc);

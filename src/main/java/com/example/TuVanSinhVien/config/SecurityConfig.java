@@ -140,6 +140,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/",
                     "/faq/**",
+                    "/health",
                     "/forum/**",
                     "/articles/**",
                     "/attachments/**",

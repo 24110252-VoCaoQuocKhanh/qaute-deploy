@@ -25,7 +25,7 @@ File WAR loại cấu hình local; Docker cũng loại file local khỏi build c
 Không cần đặt `PORT`: ứng dụng dùng cổng Render cấp.
 Origin mặc định lấy `RENDER_EXTERNAL_URL`; khi có domain riêng, đặt
 `APP_ALLOWED_ORIGINS` thành các origin HTTPS được phép, phân cách bằng dấu phẩy.
-Health Check Path có thể dùng `/login` (kiểm tra web, không thay thế kiểm tra DB).
+Health Check Path: `/health` (kiểm tra ứng dụng đang chạy, không đọc DB hay biên dịch JSP). Kiểm tra thêm trang chủ và đăng nhập sau mỗi deploy để xác nhận DB hoạt động.
 
 Render profile dùng Brevo HTTPS cho cả OTP và thông báo. Local mặc định SMTP;
 có thể chọn bằng `EMAIL_PROVIDER`. Mỗi lần gửi chỉ dùng một transport, không
