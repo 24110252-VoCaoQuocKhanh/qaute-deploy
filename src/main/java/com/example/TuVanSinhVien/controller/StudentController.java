@@ -116,7 +116,7 @@ public class StudentController {
         try {
             SinhVien sv = getStudentOrThrow(userDetails);
             ticketService.closeTicket(id, sv, ketLuan);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã đóng phiếu tư vấn.");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã đóng câu hỏi diễn đàn.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

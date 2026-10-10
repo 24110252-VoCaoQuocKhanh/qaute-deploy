@@ -3,10 +3,10 @@
 <%@ taglib prefix="q" uri="/WEB-INF/qaute-functions.tld" %>
 <!DOCTYPE html><html><head><c:set var="pageTitle" value="Tra cứu quản trị"/><%@ include file="/WEB-INF/jsp/fragments/common-head.jspf" %></head><body>
 <%@ include file="/WEB-INF/jsp/fragments/navbar.jspf" %>
-<main class="container py-4"><h2>Tra cứu quản trị</h2><p class="text-muted">Lọc phiếu tư vấn, lịch hẹn và nhật ký bảo mật theo nhiều tiêu chí.</p>
+<main class="container py-4"><h2>Tra cứu quản trị</h2><p class="text-muted">Lọc câu hỏi diễn đàn, lịch hẹn và nhật ký bảo mật theo nhiều tiêu chí.</p>
 <c:if test="${not empty errorMessage}"><div class="alert alert-danger"><c:out value="${errorMessage}"/></div></c:if>
 <form method="get" class="qaute-card p-3 row g-3 mb-4">
-<div class="col-md-3"><label class="form-label">Dữ liệu</label><select name="type" class="form-select"><option value="tickets" ${type=='tickets'?'selected':''}>Phiếu tư vấn</option><option value="appointments" ${type=='appointments'?'selected':''}>Lịch hẹn</option><option value="logs" ${type=='logs'?'selected':''}>Nhật ký bảo mật</option></select></div>
+<div class="col-md-3"><label class="form-label">Dữ liệu</label><select name="type" class="form-select"><option value="tickets" ${type=='tickets'?'selected':''}>Câu hỏi diễn đàn</option><option value="appointments" ${type=='appointments'?'selected':''}>Lịch hẹn</option><option value="logs" ${type=='logs'?'selected':''}>Nhật ký bảo mật</option></select></div>
 <div class="col-md-3"><label class="form-label">Từ khóa</label><input name="keyword" class="form-control" value="<c:out value='${param.keyword}'/>" maxlength="100"></div>
 <div class="col-md-3"><label class="form-label">Trạng thái / Loại sự kiện</label><input name="status" class="form-control" value="<c:out value='${param.status}'/>" maxlength="50"></div>
 <div class="col-md-3"><label class="form-label">Đơn vị</label><select name="unitId" class="form-select"><option value="">Tất cả</option><c:forEach var="u" items="${units}"><option value="${u.maDonVi}" ${param.unitId==u.maDonVi?'selected':''}><c:out value="${u.tenDonVi}"/></option></c:forEach></select></div>

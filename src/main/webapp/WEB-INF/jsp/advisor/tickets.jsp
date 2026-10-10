@@ -6,7 +6,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<c:set var="pageTitle" value="Quản lý phiếu tư vấn & Hàng đợi" />
+<c:set var="pageTitle" value="Quản lý câu hỏi diễn đàn & Hàng đợi" />
 <%@ include file="/WEB-INF/jsp/fragments/common-head.jspf" %>
 </head>
 <body>
@@ -15,8 +15,8 @@
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <h2 class="fw-bold text-dark m-0">Phiếu Xử Lý &amp; Hàng Đợi Khoa/Phòng</h2>
-            <p class="text-muted mb-0 small">Ưu tiên phiếu cần trả lời có hạn SLA sớm nhất. SLA tính 48 giờ liên tục từ lúc sinh viên gửi câu hỏi.</p>
+            <h2 class="fw-bold text-dark m-0">Câu Hỏi Cần Xử Lý &amp; Hàng Đợi Khoa/Phòng</h2>
+            <p class="text-muted mb-0 small">Ưu tiên câu hỏi cần trả lời có hạn SLA sớm nhất. SLA tính 48 giờ liên tục từ lúc sinh viên gửi câu hỏi.</p>
         </div>
     </div>
 
@@ -35,7 +35,7 @@
     <ul class="nav nav-pills mb-4 gap-2" id="advisorTicketTab" role="tablist">
         <li class="nav-item">
             <button class="nav-link active rounded-pill px-4 fw-bold" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned-tickets" type="button">
-                <i class="bi bi-person-check-fill me-1"></i>Phiếu đang phụ trách (<span><c:out value="${fn:length(assignedTickets)}" /></span>)
+                <i class="bi bi-person-check-fill me-1"></i>Câu hỏi đang phụ trách (<span><c:out value="${fn:length(assignedTickets)}" /></span>)
             </button>
         </li>
         <li class="nav-item">
@@ -51,7 +51,7 @@
             <div class="qaute-card p-4 border-0 shadow-sm">
                 <c:if test="${empty assignedTickets}"><div class="text-center py-5 text-muted">
                     <i class="bi bi-inbox fs-1 text-secondary mb-2"></i>
-                    <h5>Bạn chưa có phiếu tư vấn nào cần xử lý</h5>
+                    <h5>Bạn chưa có câu hỏi diễn đàn nào cần xử lý</h5>
                     <p class="small text-muted mb-0">Chuyển sang tab "Hàng đợi chưa tiếp nhận" để nhận thêm câu hỏi từ sinh viên.</p>
                 </div>
 
@@ -110,7 +110,7 @@
             <div class="qaute-card p-4 border-0 shadow-sm">
                 <c:if test="${empty queueTickets}"><div class="text-center py-5 text-muted">
                     <i class="bi bi-check-circle fs-1 text-success mb-2"></i>
-                    <h5>Hàng đợi của đơn vị hiện không có phiếu mới</h5>
+                    <h5>Hàng đợi của đơn vị hiện không có câu hỏi mới</h5>
                     <p class="small text-muted mb-0">Tất cả các câu hỏi của sinh viên đã được tiếp nhận xử lý.</p>
                 </div>
 

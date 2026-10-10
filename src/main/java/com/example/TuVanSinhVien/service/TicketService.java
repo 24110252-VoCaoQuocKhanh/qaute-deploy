@@ -55,16 +55,16 @@ public class TicketService {
 
     @Transactional
     public void claimTicket(Integer maYeuCau, NguoiTuVan cv) {
-        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         cv = nguoiTuVanRepo.findLockedById(cv.getMaCV()).orElseThrow();
         if (!"HoatDong".equals(cv.getTaiKhoan().getTrangThai())) throw new IllegalStateException("Tài khoản cố vấn chưa hoạt động.");
         long activeCount = ticketRepo.findByCoVanPhuTrach_MaCVOrderByNgayTaoDesc(cv.getMaCV()).stream().filter(t -> "DangXuLy".equals(t.getTrangThai())).count();
         if (activeCount >= cv.getHanNgachTiepNhan()) throw new IllegalStateException("Cố vấn đã đạt hạn ngạch tiếp nhận.");
         if (!"ChoTiepNhan".equals(ticket.getTrangThai())) {
-            throw new IllegalStateException("Phiếu này đã được tiếp nhận hoặc xử lý bởi cố vấn khác.");
+            throw new IllegalStateException("Câu hỏi này đã được tiếp nhận hoặc xử lý bởi cố vấn khác.");
         }
         if (!ticket.getDonVi().getMaDonVi().equals(cv.getDonVi().getMaDonVi())) {
-            throw new SecurityException("Bạn chỉ được tiếp nhận phiếu thuộc đơn vị của mình.");
+            throw new SecurityException("Bạn chỉ được tiếp nhận câu hỏi thuộc đơn vị của mình.");
         }
         if (!Boolean.TRUE.equals(cv.getNhanTuVan())) {
             throw new IllegalStateException("Tài khoản cố vấn hiện không ở trạng thái nhận tư vấn.");
@@ -82,7 +82,7 @@ public class TicketService {
         LichSuYeuCau ls = LichSuYeuCau.builder().yeuCauTuVan(ticket).taiKhoanThucHien(cv.getTaiKhoan()).hanhDong("TiepNhan").trangThaiCu("ChoTiepNhan").trangThaiMoi("DangXuLy").ngayTao(now).build();
         lichSuRepo.save(ls);
         // Báo cho sinh viên
-        notificationService.sendNotification(ticket.getSinhVien().getTaiKhoan(), "Phiếu tư vấn đã được tiếp nhận", "Cố vấn " + cv.getTaiKhoan().getHoTen() + " đã tiếp nhận câu hỏi \'" + ticket.getTieuDe() + "\'.", "DienDan", "/student/tickets/" + ticket.getMaYeuCau());
+        notificationService.sendNotification(ticket.getSinhVien().getTaiKhoan(), "Câu hỏi diễn đàn đã được tiếp nhận", "Cố vấn " + cv.getTaiKhoan().getHoTen() + " đã tiếp nhận câu hỏi \'" + ticket.getTieuDe() + "\'.", "DienDan", "/student/tickets/" + ticket.getMaYeuCau());
     }
 
     @Transactional
@@ -90,10 +90,10 @@ public class TicketService {
         if (noiDung == null || noiDung.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung câu trả lời không được để trống.");
         }
-        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         requireAssignedAdvisor(ticket, advisor);
         if (!"DangXuLy".equals(ticket.getTrangThai())) {
-            throw new IllegalStateException("Chỉ được phản hồi phiếu đang xử lý.");
+            throw new IllegalStateException("Chỉ được phản hồi câu hỏi đang xử lý.");
         }
         TaiKhoan sender = advisor.getTaiKhoan();
         LocalDateTime now = LocalDateTime.now(clock);
@@ -127,7 +127,7 @@ public class TicketService {
         if (noiDung == null || noiDung.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung câu hỏi thêm không được để trống.");
         }
-        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         requireTicketOwner(ticket, student);
         if (!"DaPhanHoi".equals(ticket.getTrangThai())) {
             throw new IllegalStateException("Chỉ được hỏi thêm sau khi cố vấn đã phản hồi.");
@@ -144,17 +144,17 @@ public class TicketService {
         LichSuYeuCau ls = LichSuYeuCau.builder().yeuCauTuVan(ticket).taiKhoanThucHien(sender).hanhDong("HoiThem").trangThaiCu("DaPhanHoi").trangThaiMoi("DangXuLy").ngayTao(now).build();
         lichSuRepo.save(ls);
         if (ticket.getCoVanPhuTrach() != null) {
-            notificationService.sendNotification(ticket.getCoVanPhuTrach().getTaiKhoan(), "Sinh viên đặt câu hỏi thêm", "Sinh viên có thêm câu hỏi đối với phiếu: \'" + ticket.getTieuDe() + "\'.", "DienDan", "/advisor/tickets/" + ticket.getMaYeuCau());
+            notificationService.sendNotification(ticket.getCoVanPhuTrach().getTaiKhoan(), "Sinh viên hỏi thêm", "Sinh viên bổ sung trao đổi trong câu hỏi: \'" + ticket.getTieuDe() + "\'.", "DienDan", "/advisor/tickets/" + ticket.getMaYeuCau());
         }
         return ph;
     }
 
     @Transactional
     public void closeTicket(Integer maYeuCau, SinhVien student, String ketLuan) {
-        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         requireTicketOwner(ticket, student);
         if (!"DaPhanHoi".equals(ticket.getTrangThai())) {
-            throw new IllegalStateException("Chỉ có thể đóng phiếu đã có phản hồi.");
+            throw new IllegalStateException("Chỉ có thể đóng câu hỏi đã có phản hồi.");
         }
         LocalDateTime now = LocalDateTime.now(clock);
         TaiKhoan sender = student.getTaiKhoan();
@@ -172,15 +172,15 @@ public class TicketService {
         if (soSao == null || soSao < 1 || soSao > 5) {
             throw new IllegalArgumentException("Điểm đánh giá phải từ 1 đến 5 sao.");
         }
-        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         if (!ticket.getSinhVien().getMaSV().equals(maSV)) {
-            throw new IllegalArgumentException("Bạn chỉ có thể đánh giá phiếu tư vấn của chính mình.");
+            throw new IllegalArgumentException("Bạn chỉ có thể đánh giá câu hỏi diễn đàn của chính mình.");
         }
         if (!"DaPhanHoi".equals(ticket.getTrangThai()) && !"Dong".equals(ticket.getTrangThai())) {
-            throw new IllegalStateException("Chỉ có thể đánh giá phiếu đã có phản hồi hoặc đã đóng.");
+            throw new IllegalStateException("Chỉ có thể đánh giá câu hỏi đã có phản hồi hoặc đã đóng.");
         }
         if (danhGiaRepo.existsByYeuCauTuVan_MaYeuCau(maYeuCau)) {
-            throw new IllegalStateException("Phiếu tư vấn này đã được đánh giá rồi (không thể sửa lại).");
+            throw new IllegalStateException("Câu hỏi diễn đàn này đã được đánh giá rồi (không thể sửa lại).");
         }
         DanhGiaYeuCau dg = DanhGiaYeuCau.builder().yeuCauTuVan(ticket).maSV(maSV).soSao(soSao).nhanXet(nhanXet != null ? nhanXet.trim() : "").ngayDanhGia(LocalDateTime.now(clock)).build();
         danhGiaRepo.save(dg);
@@ -188,10 +188,10 @@ public class TicketService {
 
     @Transactional
     public void transferTicket(Integer maYeuCau, Integer maDonViMoi, Integer maLinhVucMoi, String lyDo, NguoiTuVan advisor) {
-        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        YeuCauTuVan ticket = ticketRepo.findLockedById(maYeuCau).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         requireAssignedAdvisor(ticket, advisor);
         if (!"DangXuLy".equals(ticket.getTrangThai())) {
-            throw new IllegalStateException("Chỉ được chuyển tiếp phiếu đang xử lý.");
+            throw new IllegalStateException("Chỉ được chuyển tiếp câu hỏi đang xử lý.");
         }
         if (lyDo == null || lyDo.trim().length() < 5) {
             throw new IllegalArgumentException("Lý do chuyển tiếp phải có ít nhất 5 ký tự.");
@@ -245,14 +245,14 @@ public class TicketService {
     @Transactional
     public void assignTicket(Integer ticketId, Integer advisorId, TaiKhoan admin, String note) {
         YeuCauTuVan ticket = ticketRepo.findLockedById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         NguoiTuVan advisor = nguoiTuVanRepo.findLockedById(advisorId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cố vấn."));
         if (!"ChoTiepNhan".equals(ticket.getTrangThai())) {
-            throw new IllegalStateException("Chỉ được phân công phiếu đang chờ tiếp nhận.");
+            throw new IllegalStateException("Chỉ được phân công câu hỏi đang chờ tiếp nhận.");
         }
         if (!ticket.getDonVi().getMaDonVi().equals(advisor.getDonVi().getMaDonVi())) {
-            throw new IllegalArgumentException("Cố vấn phải thuộc đúng đơn vị đang tiếp nhận phiếu.");
+            throw new IllegalArgumentException("Cố vấn phải thuộc đúng đơn vị đang tiếp nhận câu hỏi.");
         }
         if (!Boolean.TRUE.equals(advisor.getNhanTuVan()) || !"HoatDong".equals(advisor.getTaiKhoan().getTrangThai())) {
             throw new IllegalStateException("Cố vấn đang không nhận tư vấn hoặc tài khoản chưa hoạt động.");
@@ -270,11 +270,11 @@ public class TicketService {
         ticketRepo.save(ticket);
         phanCongRepo.save(PhanCongTuVan.builder().yeuCauTuVan(ticket).taiKhoanThucHien(admin)
                 .coVanPhuTrach(advisor).ngayPhanCong(now)
-                .ghiChu(note == null || note.isBlank() ? "Admin điều phối phiếu tư vấn." : note.trim()).build());
+                .ghiChu(note == null || note.isBlank() ? "Admin điều phối câu hỏi diễn đàn." : note.trim()).build());
         lichSuRepo.save(LichSuYeuCau.builder().yeuCauTuVan(ticket).taiKhoanThucHien(admin)
                 .hanhDong("PhanCong").trangThaiCu("ChoTiepNhan").trangThaiMoi("DangXuLy").ngayTao(now).build());
-        notificationService.sendNotification(advisor.getTaiKhoan(), "Bạn được phân công phiếu tư vấn",
-                "Phiếu #" + ticket.getMaYeuCau() + " - " + ticket.getTieuDe(), "DienDan",
+        notificationService.sendNotification(advisor.getTaiKhoan(), "Bạn được phân công câu hỏi diễn đàn",
+                "Câu hỏi #" + ticket.getMaYeuCau() + " - " + ticket.getTieuDe(), "DienDan",
                 "/advisor/tickets/" + ticket.getMaYeuCau());
     }
 
@@ -291,8 +291,8 @@ public class TicketService {
                     .hanhDong("TuDongDong").trangThaiCu("DaPhanHoi").trangThaiMoi("Dong")
                     .lyDo("Quá 7 ngày không có phản hồi thêm").ngayTao(now).build());
             notificationService.sendNotificationOnce(ticket.getSinhVien().getTaiKhoan(),
-                    "AUTO_CLOSE_TICKET_" + ticket.getMaYeuCau(), "Phiếu tư vấn đã tự động đóng",
-                    "Phiếu '" + ticket.getTieuDe() + "' đã được đóng sau 7 ngày không có câu hỏi bổ sung.",
+                    "AUTO_CLOSE_TICKET_" + ticket.getMaYeuCau(), "Câu hỏi diễn đàn đã tự động đóng",
+                    "Câu hỏi '" + ticket.getTieuDe() + "' đã được đóng sau 7 ngày không có câu hỏi bổ sung.",
                     "DienDan", "/student/tickets/" + ticket.getMaYeuCau());
             closed++;
         }
@@ -306,20 +306,20 @@ public class TicketService {
         boolean waitingInDepartment = "ChoTiepNhan".equals(ticket.getTrangThai())
                 && ticket.getDonVi().getMaDonVi().equals(advisor.getDonVi().getMaDonVi());
         if (!assigned && !waitingInDepartment) {
-            throw new SecurityException("Bạn không có quyền xem phiếu tư vấn này.");
+            throw new SecurityException("Bạn không có quyền xem câu hỏi diễn đàn này.");
         }
         return ticket;
     }
 
     private void requireTicketOwner(YeuCauTuVan ticket, SinhVien student) {
         if (!ticket.getSinhVien().getMaSV().equals(student.getMaSV())) {
-            throw new SecurityException("Bạn chỉ được thao tác trên phiếu tư vấn của mình.");
+            throw new SecurityException("Bạn chỉ được thao tác trên câu hỏi diễn đàn của mình.");
         }
     }
 
     private void requireAssignedAdvisor(YeuCauTuVan ticket, NguoiTuVan advisor) {
         if (ticket.getCoVanPhuTrach() == null || !ticket.getCoVanPhuTrach().getMaCV().equals(advisor.getMaCV())) {
-            throw new SecurityException("Phiếu này không được phân công cho bạn.");
+            throw new SecurityException("Câu hỏi này không được phân công cho bạn.");
         }
     }
 

@@ -6,14 +6,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-<c:set var="pageTitle" value="Điều phối phiếu tư vấn" />
+<c:set var="pageTitle" value="Điều phối câu hỏi diễn đàn" />
 <%@ include file="/WEB-INF/jsp/fragments/common-head.jspf" %>
 </head>
 <body>
 <%@ include file="/WEB-INF/jsp/fragments/navbar.jspf" %>
-<div class="container py-4"><a class="btn btn-outline-primary mb-3" href="${pageContext.request.contextPath}/admin/search">Tra cứu phiếu, lịch hẹn, nhật ký</a>
+<div class="container py-4"><a class="btn btn-outline-primary mb-3" href="${pageContext.request.contextPath}/admin/search">Tra cứu câu hỏi, lịch hẹn, nhật ký</a>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h2 class="fw-bold mb-1">Điều phối phiếu tư vấn</h2><p class="text-muted mb-0">Phân công phiếu mới cho cố vấn đúng đơn vị và còn hạn ngạch.</p></div>
+        <div><h2 class="fw-bold mb-1">Điều phối câu hỏi diễn đàn</h2><p class="text-muted mb-0">Phân công câu hỏi mới cho cố vấn đúng đơn vị và còn hạn ngạch.</p></div>
         <a class="btn btn-outline-secondary rounded-pill" href="${pageContext.request.contextPath}/admin/dashboard">Quay lại tổng quan</a>
     </div>
     <c:if test="${not empty successMessage}"><div class="alert alert-success"><c:out value="${successMessage}" /></div>
@@ -21,7 +21,7 @@
     </c:if><div class="qaute-card p-4 shadow-sm border-0">
         <div class="table-responsive">
             <table class="table align-middle">
-                <thead><tr><th>Phiếu</th><th>Đơn vị</th><th>Trạng thái</th><th>Cố vấn</th><th>Điều phối</th></tr></thead>
+                <thead><tr><th>Câu hỏi</th><th>Đơn vị</th><th>Trạng thái</th><th>Cố vấn</th><th>Điều phối</th></tr></thead>
                 <tbody>
                 <c:forEach var="ticket" items="${tickets}"><tr>
                     <td><strong><c:out value="${'#' += ticket.maYeuCau += ' · ' += ticket.tieuDe}" /></strong><div class="small text-muted"><c:out value="${q:formatTemporal(ticket.ngayTao, 'dd/MM/yyyy HH:mm')}" /></div></td>
@@ -40,7 +40,7 @@
                         </c:if><c:if test="${not (ticket.trangThai == 'ChoTiepNhan')}"><span class="small text-muted">Đã xử lý điều phối</span>
                     </c:if></td>
                 </tr>
-                </c:forEach><c:if test="${empty tickets}"><tr><td colspan="5" class="text-center text-muted py-4">Chưa có phiếu tư vấn.</td></tr>
+                </c:forEach><c:if test="${empty tickets}"><tr><td colspan="5" class="text-center text-muted py-4">Chưa có câu hỏi diễn đàn.</td></tr>
                 </c:if></tbody>
             </table>
         </div>

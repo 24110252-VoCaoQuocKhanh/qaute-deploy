@@ -15,8 +15,8 @@ public class ConsultationRecordPdfService {
     private final com.example.TuVanSinhVien.repository.YeuCauTuVanRepository tickets;
     public ConsultationRecordPdfService(com.example.TuVanSinhVien.repository.YeuCauTuVanRepository tickets) { this.tickets=tickets; }
     public byte[] exportTicket(YeuCauTuVan ticket) {
-        if(ticket==null || ticket.getMaYeuCau()==null) throw new IllegalArgumentException("Không tìm thấy phiếu tư vấn.");
-        ticket=tickets.findById(ticket.getMaYeuCau()).orElseThrow(()->new IllegalArgumentException("Không tìm thấy phiếu tư vấn."));
+        if(ticket==null || ticket.getMaYeuCau()==null) throw new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn.");
+        ticket=tickets.findById(ticket.getMaYeuCau()).orElseThrow(()->new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn."));
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4, 42, 42, 42, 42);
             PdfWriter.getInstance(document, output);
@@ -27,7 +27,7 @@ public class ConsultationRecordPdfService {
             Font body = new Font(base, 10);
             Paragraph name = new Paragraph("BIÊN BẢN KẾT QUẢ TƯ VẤN SINH VIÊN", title);
             name.setAlignment(Element.ALIGN_CENTER); name.setSpacingAfter(16); document.add(name);
-            add(document, body, "Mã phiếu: #" + ticket.getMaYeuCau());
+            add(document, body, "Mã câu hỏi: #" + ticket.getMaYeuCau());
             add(document, body, "Sinh viên: " + ticket.getSinhVien().getTaiKhoan().getHoTen() + " - " + ticket.getSinhVien().getMssv());
             add(document, body, "Đơn vị: " + ticket.getDonVi().getTenDonVi());
             add(document, body, "Lĩnh vực: " + ticket.getLinhVuc().getTenLinhVuc());

@@ -36,7 +36,7 @@ public class ReportExportService {
             XSSFSheet sheet = workbook.createSheet("BaoCao");
             CellStyle headerStyle = workbook.createCellStyle();
             org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont(); headerFont.setBold(true); headerStyle.setFont(headerFont);
-            String[] headers = {"Mã phiếu", "Ngày tạo", "Sinh viên", "Đơn vị", "Lĩnh vực", "Trạng thái", "Cố vấn"};
+            String[] headers = {"Mã câu hỏi", "Ngày tạo", "Sinh viên", "Đơn vị", "Lĩnh vực", "Trạng thái", "Cố vấn"};
             org.apache.poi.ss.usermodel.Row header = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) { header.createCell(i).setCellValue(headers[i]); header.getCell(i).setCellStyle(headerStyle); }
             int rowIndex = 1;
@@ -58,7 +58,7 @@ public class ReportExportService {
             for (Map.Entry<String, Long> entry : counts.entrySet()) { org.apache.poi.ss.usermodel.Row row = sheet.createRow(cursor++); row.createCell(0).setCellValue(entry.getKey()); row.createCell(1).setCellValue(entry.getValue()); }
             XSSFDrawing drawing = sheet.createDrawingPatriarch();
             var anchor = drawing.createAnchor(0, 0, 0, 0, 8, summaryStart, 16, summaryStart + 15);
-            var chart = drawing.createChart(anchor); chart.setTitleText("Số lượng phiếu theo trạng thái");
+            var chart = drawing.createChart(anchor); chart.setTitleText("Số lượng câu hỏi theo trạng thái");
             XDDFCategoryAxis bottomAxis = chart.createCategoryAxis(AxisPosition.BOTTOM);
             XDDFValueAxis leftAxis = chart.createValueAxis(AxisPosition.LEFT); leftAxis.setCrosses(AxisCrosses.AUTO_ZERO);
             XDDFDataSource<String> categories = XDDFDataSourcesFactory.fromStringCellRange(sheet, new org.apache.poi.ss.util.CellRangeAddress(summaryStart + 1, cursor - 1, 0, 0));

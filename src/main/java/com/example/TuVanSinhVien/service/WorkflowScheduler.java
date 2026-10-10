@@ -56,7 +56,7 @@ public class WorkflowScheduler {
         appointmentService.expirePendingAppointments(now);
         notifyOverdue(ticketRepo.findOverdueSla(now), true);
         if (autoClosed > 0) {
-            log.info("[WORKFLOW] Đã tự động đóng {} phiếu hết hạn.", autoClosed);
+            log.info("[WORKFLOW] Đã tự động đóng {} câu hỏi hết hạn.", autoClosed);
         }
     }
 
@@ -72,8 +72,8 @@ public class WorkflowScheduler {
             List<TaiKhoan> recipients = manager == null ? accountRepo.findByVaiTro("Admin") : List.of(manager);
             String level = redAlert ? "đỏ" : "vàng";
             String keyPrefix = redAlert ? "SLA_RED_" : "SLA_YELLOW_";
-            String title = redAlert ? "Cảnh báo đỏ: phiếu quá hạn phản hồi" : "Cảnh báo vàng: phiếu chưa được tiếp nhận";
-            String content = "Phiếu #" + ticket.getMaYeuCau() + " - " + ticket.getTieuDe()
+            String title = redAlert ? "Cảnh báo đỏ: câu hỏi quá hạn phản hồi" : "Cảnh báo vàng: câu hỏi chưa được tiếp nhận";
+            String content = "Câu hỏi #" + ticket.getMaYeuCau() + " - " + ticket.getTieuDe()
                     + " thuộc " + ticket.getDonVi().getTenDonVi() + " đang ở mức cảnh báo " + level + ".";
             for (TaiKhoan recipient : recipients) {
                 notificationService.sendNotificationOnce(recipient,

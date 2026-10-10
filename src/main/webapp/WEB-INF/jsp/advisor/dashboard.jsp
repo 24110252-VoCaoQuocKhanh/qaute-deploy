@@ -31,11 +31,11 @@
                 <p class="text-white-50 mb-3 small">
                     <span><c:out value="${advisor.hocHamHocVi += ' - ' += advisor.chucVu}" /></span> |
                     Đơn vị: <strong class="text-white"><c:out value="${advisor.donVi.tenDonVi}" /></strong> |
-                    Hạn ngạch tiếp nhận: <span class="badge bg-white bg-opacity-20 text-white"><c:out value="${advisor.hanNgachTiepNhan += ' phiếu'}" /></span>
+                    Hạn ngạch tiếp nhận: <span class="badge bg-white bg-opacity-20 text-white"><c:out value="${advisor.hanNgachTiepNhan += ' câu hỏi'}" /></span>
                 </p>
                 <div class="d-flex flex-wrap gap-2">
                     <a class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 shadow-sm" href="${pageContext.request.contextPath}/advisor/tickets">
-                        <i class="bi bi-inbox-fill me-1"></i>Hàng đợi tiếp nhận phiếu
+                        <i class="bi bi-inbox-fill me-1"></i>Hàng đợi tiếp nhận câu hỏi
                     </a>
                     <a class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold" href="${pageContext.request.contextPath}/advisor/slots">
                         <i class="bi bi-calendar-plus me-1"></i>Mở khung giờ tư vấn
@@ -69,13 +69,13 @@
         <div class="col-lg-7">
             <div class="qaute-card p-4 h-100 border-0 shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-person-check-fill text-primary me-2"></i>Phiếu đang được giao cho bạn</h5>
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-person-check-fill text-primary me-2"></i>Câu hỏi đang được giao cho bạn</h5>
                     <a class="text-primary text-decoration-none small fw-semibold" href="${pageContext.request.contextPath}/advisor/tickets">Xem chi tiết</a>
                 </div>
 
                 <c:if test="${empty assignedTickets}"><div class="text-center py-5 text-muted">
                     <i class="bi bi-check2-circle fs-1 text-success mb-2"></i>
-                    <p class="small mb-0">Bạn đã xử lý hết các phiếu được giao. Hãy kiểm tra hàng đợi để nhận phiếu mới!</p>
+                    <p class="small mb-0">Bạn đã xử lý hết các câu hỏi được giao. Hãy kiểm tra hàng đợi để nhận câu hỏi mới!</p>
                 </div>
 
                 </c:if><c:if test="${not (empty assignedTickets)}"><div class="list-group list-group-flush">
@@ -102,7 +102,7 @@
             <div class="qaute-card p-4 mb-4 border-0 shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-dark m-0"><i class="bi bi-hourglass-split text-warning me-2"></i>Hàng đợi đơn vị cần tiếp nhận</h5>
-                    <span class="badge bg-warning-subtle text-warning-emphasis fw-bold"><c:out value="${fn:length(queueTickets) += ' phiếu chờ'}" /></span>
+                    <span class="badge bg-warning-subtle text-warning-emphasis fw-bold"><c:out value="${fn:length(queueTickets) += ' câu hỏi chờ'}" /></span>
                 </div>
 
                 <c:if test="${empty queueTickets}"><div class="text-center py-4 text-muted">

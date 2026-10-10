@@ -12,11 +12,11 @@
 <body>
 
 <%@ include file="/WEB-INF/jsp/fragments/navbar.jspf" %>
-<div class="container py-4"><a class="btn btn-outline-primary mb-3" href="${pageContext.request.contextPath}/admin/search">Tra cứu phiếu, lịch hẹn, nhật ký</a>
+<div class="container py-4"><a class="btn btn-outline-primary mb-3" href="${pageContext.request.contextPath}/admin/search">Tra cứu câu hỏi, lịch hẹn, nhật ký</a>
     <!-- Thông báo nếu vừa bị chặn khi vào link sinh viên -->
     <c:if test="${param.denied}"><div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-2 mb-4 rounded-3 shadow-sm border-warning" role="alert">
         <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0"></i>
-        <span>Tài khoản <strong>Quản trị viên</strong> không có hồ sơ sinh viên để mở các trang dành riêng cho sinh viên (như chat trực tuyến SV, gửi phiếu, đặt lịch). Hệ thống đã tự động đưa bạn về Bảng điều khiển Quản trị.</span>
+        <span>Tài khoản <strong>Quản trị viên</strong> không có hồ sơ sinh viên để mở các trang dành riêng cho sinh viên (như chat trực tuyến SV, gửi câu hỏi, đặt lịch). Hệ thống đã tự động đưa bạn về Bảng điều khiển Quản trị.</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
@@ -42,7 +42,7 @@
                         <i class="bi bi-folder2-open me-1"></i>Danh mục đơn vị
                     </a>
                     <a class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold" href="${pageContext.request.contextPath}/admin/tickets">
-                        <i class="bi bi-diagram-2 me-1"></i>Điều phối phiếu
+                        <i class="bi bi-diagram-2 me-1"></i>Điều phối câu hỏi
                     </a>
                 </div>
                 <form class="row g-2 mt-3" method="get" action="${pageContext.request.contextPath}/admin/reports/export">

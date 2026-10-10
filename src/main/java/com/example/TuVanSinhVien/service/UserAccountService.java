@@ -191,7 +191,7 @@ public class UserAccountService {
     private void requireNoActiveWork(NguoiTuVan advisor) {
         if(ticketRepo.findByCoVanPhuTrach_MaCVOrderByNgayTaoDesc(advisor.getMaCV()).stream().anyMatch(t -> java.util.Set.of("DangXuLy","DaPhanHoi").contains(t.getTrangThai()))
             || appointmentRepo.findByNguoiTuVan_MaCVOrderByNgayTaoDesc(advisor.getMaCV()).stream().anyMatch(a -> java.util.Set.of("ChoDuyet","DaXacNhan").contains(a.getTrangThai())))
-            throw new IllegalStateException("Cố vấn còn phiếu/lịch hẹn đang xử lý; hãy điều phối xong trước khi khóa hoặc đổi vai trò/đơn vị.");
+            throw new IllegalStateException("Cố vấn còn câu hỏi/lịch hẹn đang xử lý; hãy điều phối xong trước khi khóa hoặc đổi vai trò/đơn vị.");
         if (chatRepo != null && chatRepo.findByNguoiTuVan_MaCVOrderByThoiGianBatDauDesc(advisor.getMaCV()).stream()
                 .anyMatch(c -> "DangHoatDong".equals(c.getTrangThai())))
             throw new IllegalStateException("Cố vấn còn phiên chat đang mở; hãy kết thúc phiên trước khi khóa hoặc đổi đơn vị.");

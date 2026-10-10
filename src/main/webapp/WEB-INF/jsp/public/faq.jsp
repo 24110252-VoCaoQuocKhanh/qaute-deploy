@@ -83,7 +83,7 @@
                     Đừng ngần ngại gửi câu hỏi trực tiếp cho Cố vấn học tập phụ trách. Bạn sẽ nhận được phản hồi chi tiết trong vòng 24–48h.
                 </p>
                 <a class="btn btn-warning text-dark fw-bold w-100 rounded-pill py-2" href="${pageContext.request.contextPath}/forum/ask">
-                    <i class="bi bi-pencil-square me-1"></i>Tạo Phiếu Tư Vấn Mới
+                    <i class="bi bi-pencil-square me-1"></i>Đặt câu hỏi trên diễn đàn
                 </a>
             </div>
 

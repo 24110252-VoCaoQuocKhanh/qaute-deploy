@@ -91,7 +91,7 @@ public class AdminController {
             TaiKhoan admin = taiKhoanRepo.findById(userDetails.getMaTK())
                     .orElseThrow(() -> new IllegalStateException("Không tìm thấy tài khoản Admin."));
             ticketService.assignTicket(id, advisorId, admin, note);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã phân công phiếu #" + id + " thành công.");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã phân công câu hỏi #" + id + " thành công.");
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

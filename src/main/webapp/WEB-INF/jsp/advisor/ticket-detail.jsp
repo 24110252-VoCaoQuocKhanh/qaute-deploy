@@ -6,7 +6,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<c:set var="pageTitle" value="Chi tiết phiếu tư vấn #${ticket.maYeuCau}" />
+<c:set var="pageTitle" value="Chi tiết câu hỏi diễn đàn #${ticket.maYeuCau}" />
 <%@ include file="/WEB-INF/jsp/fragments/common-head.jspf" %>
 </head>
 <body>
@@ -16,7 +16,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a class="text-decoration-none" href="${pageContext.request.contextPath}/advisor/dashboard">Bàn cố vấn</a></li>
-            <li class="breadcrumb-item"><a class="text-decoration-none" href="${pageContext.request.contextPath}/advisor/tickets">Phiếu tư vấn</a></li>
+            <li class="breadcrumb-item"><a class="text-decoration-none" href="${pageContext.request.contextPath}/advisor/tickets">Câu hỏi diễn đàn</a></li>
             <li class="breadcrumb-item active"><c:out value="${'#' += ticket.maYeuCau}" /></li>
         </ol>
     </nav>
@@ -35,7 +35,7 @@
             <!-- Ticket Info Card -->
             <div class="qaute-card p-4 mb-4 border-0 shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small">Phiếu yêu cầu tư vấn <strong><c:out value="${'#' += ticket.maYeuCau}" /></strong></span>
+                    <span class="text-muted small">Câu hỏi diễn đàn <strong><c:out value="${'#' += ticket.maYeuCau}" /></strong></span>
                     <span class="${'status-badge status-' += ticket.trangThai}"><c:out value="${ticket.trangThai}" /></span>
                 </div>
 
@@ -190,7 +190,7 @@
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold text-dark">Chuyển tiếp phiếu tư vấn</h5>
+                <h5 class="modal-title fw-bold text-dark">Chuyển tiếp câu hỏi diễn đàn</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" action="${pageContext.request.contextPath}/advisor/tickets/${ticket.maYeuCau}/transfer">
