@@ -79,7 +79,24 @@ public class AdminController {
     public String tickets(Model model) {
         model.addAttribute("tickets", ticketService.getAllTickets());
         model.addAttribute("advisors", nguoiTuVanRepo.findAllWithAccountAndUnit());
+        model.addAttribute("forumVisibility", forumService.visibilityByQuestion());
         return "admin/tickets";
+    }
+
+    @PostMapping("/tickets/{id}/visibility")
+    public String questionVisibility(@PathVariable Integer id, @RequestParam boolean visible,
+                                     @RequestParam(required=false) String reason,
+                                     @AuthenticationPrincipal CustomUserDetails user,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            forumService.setVisibility(id, visible, user.getMaTK(), reason);
+            redirectAttributes.addFlashAttribute("successMessage", visible
+                    ? "Đã khôi phục câu hỏi #" + id + " trên diễn đàn."
+                    : "Đã ẩn câu hỏi #" + id + " khỏi diễn đàn. Lịch sử trao đổi vẫn được giữ lại.");
+        } catch (IllegalArgumentException | SecurityException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/admin/tickets";
     }
 
     @PostMapping("/tickets/{id}/assign")

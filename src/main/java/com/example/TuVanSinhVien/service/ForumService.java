@@ -16,6 +16,29 @@ public class ForumService {
     public boolean isOwner(Integer id, Integer accountId) {
         return accountId != null && jdbc.queryForObject("SELECT COUNT(*) FROM dbo.YeuCauTuVan y JOIN dbo.SinhVien s ON s.MaSV=y.MaSV WHERE y.MaYeuCau=? AND s.MaTK=?", Integer.class, id, accountId) == 1;
     }
+    public Map<Integer,Boolean> visibilityByQuestion() {
+        Map<Integer,Boolean> result = new java.util.HashMap<>();
+        jdbc.queryForList("SELECT MaYeuCau,HienThi FROM dbo.CauHoiDienDan")
+            .forEach(row -> result.put(((Number)row.get("MaYeuCau")).intValue(), (Boolean)row.get("HienThi")));
+        return result;
+    }
+    @Transactional
+    public void setVisibility(Integer id, boolean visible, Integer adminId, String reason) {
+        String note = reason == null ? "" : reason.strip();
+        if ((!visible && note.isEmpty()) || note.length() > 500)
+            throw new IllegalArgumentException("Vui lòng nhập lý do ẩn câu hỏi, tối đa 500 ký tự.");
+        if (adminId == null || jdbc.queryForObject("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE MaTK=? AND VaiTro='Admin' AND TrangThai='HoatDong'", Integer.class, adminId) != 1)
+            throw new SecurityException("Chỉ quản trị viên đang hoạt động mới được ẩn hoặc khôi phục câu hỏi.");
+        List<Boolean> states = jdbc.queryForList("SELECT HienThi FROM dbo.CauHoiDienDan WITH (UPDLOCK,ROWLOCK) WHERE MaYeuCau=?", Boolean.class, id);
+        if (states.isEmpty()) throw new IllegalArgumentException("Không tìm thấy câu hỏi diễn đàn.");
+        if (states.getFirst() == visible) return;
+        jdbc.update("UPDATE dbo.CauHoiDienDan SET HienThi=? WHERE MaYeuCau=?", visible, id);
+        jdbc.update("""
+            INSERT dbo.LichSuYeuCau(MaYeuCau,MaTK_ThucHien,HanhDong,LyDo)
+            VALUES (?,?,?,?)
+            """, id, adminId, visible ? "KhoiPhucDienDan" : "AnDienDan",
+            note.isEmpty() ? "Khôi phục hiển thị câu hỏi trên diễn đàn" : note);
+    }
     private static final String SELECT = """
         SELECT y.MaYeuCau AS id, y.TieuDe AS title, y.NoiDung AS body,
           CONVERT(varchar(19), y.NgayTao, 120) AS createdAt, d.TenDonVi AS unitName,
