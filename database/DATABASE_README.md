@@ -101,3 +101,10 @@ Không có mật khẩu tài khoản cloud hoặc credentials ứng dụng trong
 Cài mới: chạy `QAUTE.sql`, sau đó `V3__add_faculties.sql`; V2/V4/V5 đã được tích hợp trong schema mới. Database cũ: đọc và chạy migration phù hợp V2→V7, không chạy lại script tạo DB. Không có Flyway tự chạy các script: người cài đặt phải chạy SQL thủ công. Chạy profile `dev` sẽ seed tài khoản/dữ liệu demo qua JPA, trong đó bổ sung cố vấn cho các khoa đang hoạt động.
 
 Database cũ cần chạy `database/V7__otp_contact_columns.sql` trong QAUTE để bổ sung hai cột OTP khớp entity. Schema tạo mới đã gồm hai cột này; migration không thay đổi dữ liệu cũ.
+
+## Dọn sáu bảng không dùng
+
+Chạy `V8__remove_unused_tables.sql`. V8 chạy thủ công sau khi triển khai bản code đã bỏ entity `LichLamViec`, `NgayNghi`, `NhatKyHeThong`; không tự chạy khi khởi động. Sao lưu cấu trúc và dữ liệu sáu bảng trước khi chạy. Script dùng transaction, dừng nếu có khóa ngoại trỏ vào bảng, năm bảng nghiệp vụ có dữ liệu hoặc lịch làm việc có giờ tùy chỉnh. Schema cài mới đã bỏ sáu bảng nên không cần chạy V8. Bản ứng dụng cũ có các entity này không tương thích với schema sau V8; khi rollback code phải khôi phục bảng trước.
+
+Quên mật khẩu vẫn dùng `YeuCauXacMinhOTP`; giờ hành chính do `SlaService` kiểm tra, ngày nghỉ dùng `SLA_HOLIDAYS`; tra cứu nhật ký dùng `NhatKyBaoMat` và lịch sử câu hỏi dùng `LichSuYeuCau`. Giữ `CauHinhHeThong` và `CoVanLinhVuc` vì các script hiện tại còn phụ thuộc.
+
