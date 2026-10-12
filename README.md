@@ -279,3 +279,5 @@ Tạo database QAUTE trống trên Azure trước; chọn vùng trong Allowed re
 Xuất database local bằng Generate Scripts (Schema and data, Unicode, mục tiêu Microsoft Azure SQL Database). Không chạy nguyên script nếu còn CREATE/ALTER DATABASE hoặc CREATE USER ... FOR LOGIN từ máy local. Bản nhập cần chỉ tạo schema/dữ liệu vào database Azure có sẵn, giữ ID và các quan hệ, kiểm tra đích rỗng, dùng transaction rollback khi lỗi và kiểm số dòng/khóa ngoại. File dump có dữ liệu riêng tư, hash mật khẩu và token: không đưa vào Git.
 
 Sau import, tạo tài khoản ứng dụng Azure riêng với quyền cần thiết, đặt kết nối/secret bằng biến môi trường của production. Kiểm thử app với Azure trước khi deploy Render. Không bật profile dev để vận hành production; giữ bản dữ liệu local làm dự phòng.
+
+Hủy lịch trực tuyến và trực tiếp trước giờ bắt đầu ít nhất 3 giờ. Áp dụng V10__unify_appointment_cancellation.sql cho database đã có.
