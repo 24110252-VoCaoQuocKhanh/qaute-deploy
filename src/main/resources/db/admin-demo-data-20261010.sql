@@ -24,7 +24,7 @@ BEGIN TRY
  SELECT ROW_NUMBER() OVER(ORDER BY d.MaDonVi),d.MaDonVi,f.MaLinhVuc,a.MaCV,a.MaTK,d.TenDonVi,f.TenLinhVuc
  FROM dbo.DonVi d
  CROSS APPLY(SELECT TOP 1 l.MaLinhVuc,l.TenLinhVuc FROM dbo.LinhVucTuVan l WHERE l.MaDonVi=d.MaDonVi AND l.TrangThai='HoatDong' AND l.NhayCam=0 ORDER BY l.MaLinhVuc) f
- CROSS APPLY(SELECT TOP 1 c.MaCV,c.MaTK FROM dbo.NguoiTuVan c JOIN dbo.CoVanLinhVuc cl ON cl.MaCV=c.MaCV WHERE c.MaDonVi=d.MaDonVi AND cl.MaLinhVuc=f.MaLinhVuc ORDER BY c.MaCV) a
+ CROSS APPLY(SELECT TOP 1 c.MaCV,c.MaTK FROM dbo.NguoiTuVan c JOIN dbo.TaiKhoan t ON t.MaTK=c.MaTK WHERE c.MaDonVi=d.MaDonVi AND c.NhanTuVan=1 AND t.VaiTro='CoVan' AND t.TrangThai='HoatDong' ORDER BY c.MaCV) a
  WHERE d.HoatDong=1;
  DECLARE @unitCount int=(SELECT COUNT(*) FROM @units);
  IF @unitCount<10 THROW 51002,'Expected at least ten configured advisor units.',1;
