@@ -1,4 +1,6 @@
 -- Optional demo batch. Never run automatically on application startup.
+-- After a fresh import, apply normalize-student-display-20261010.sql for natural display formats.
+-- Both original and normalized account names are recognized to prevent re-insertion.
 -- Azure QAUTE only; @Apply=0 validates the entire batch then rolls it back.
 -- All sample accounts are locked, use non-deliverable email and have no usable password.
 SET NOCOUNT ON;
@@ -9,11 +11,11 @@ BEGIN TRY
  DECLARE @lock int;
  EXEC @lock=sys.sp_getapplock @Resource='QAUTE-demo-20261010',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
  IF @lock<0 THROW 51000,'Cannot acquire demo batch lock.',1;
- IF EXISTS(SELECT 1 FROM dbo.TaiKhoan WHERE TenDangNhap LIKE 'demo261010[_]%')
+ IF EXISTS(SELECT 1 FROM dbo.TaiKhoan WHERE (TenDangNhap LIKE 'demo261010[_]%' OR (TenDangNhap BETWEEN 'sv24119001' AND 'sv24119080' AND LEN(TenDangNhap)=10)))
  BEGIN
-  IF (SELECT COUNT(*) FROM dbo.TaiKhoan WHERE TenDangNhap LIKE 'demo261010[_]%')<>80
-   OR (SELECT COUNT(*) FROM dbo.YeuCauTuVan y JOIN dbo.SinhVien s ON s.MaSV=y.MaSV JOIN dbo.TaiKhoan t ON t.MaTK=s.MaTK WHERE t.TenDangNhap LIKE 'demo261010[_]%')<>240
-   OR (SELECT COUNT(*) FROM dbo.LichHenTuVan h JOIN dbo.SinhVien s ON s.MaSV=h.MaSV JOIN dbo.TaiKhoan t ON t.MaTK=s.MaTK WHERE t.TenDangNhap LIKE 'demo261010[_]%')<>64
+  IF (SELECT COUNT(*) FROM dbo.TaiKhoan WHERE (TenDangNhap LIKE 'demo261010[_]%' OR (TenDangNhap BETWEEN 'sv24119001' AND 'sv24119080' AND LEN(TenDangNhap)=10)))<>80
+   OR (SELECT COUNT(*) FROM dbo.YeuCauTuVan y JOIN dbo.SinhVien s ON s.MaSV=y.MaSV JOIN dbo.TaiKhoan t ON t.MaTK=s.MaTK WHERE (t.TenDangNhap LIKE 'demo261010[_]%' OR (t.TenDangNhap BETWEEN 'sv24119001' AND 'sv24119080' AND LEN(t.TenDangNhap)=10)))<>240
+   OR (SELECT COUNT(*) FROM dbo.LichHenTuVan h JOIN dbo.SinhVien s ON s.MaSV=h.MaSV JOIN dbo.TaiKhoan t ON t.MaTK=s.MaTK WHERE (t.TenDangNhap LIKE 'demo261010[_]%' OR (t.TenDangNhap BETWEEN 'sv24119001' AND 'sv24119080' AND LEN(t.TenDangNhap)=10)))<>64
    THROW 51001,'Partial demo batch exists; inspect before retrying.',1;
   SELECT 'Already present; no changes made' AS Result;
   ROLLBACK; RETURN;
