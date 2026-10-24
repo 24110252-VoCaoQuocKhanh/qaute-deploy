@@ -10,7 +10,7 @@
 <%@ include file="/WEB-INF/jsp/fragments/common-head.jspf" %>
 </head>
 <body>
-<div class="alert alert-info mx-3 mt-3 small">Cố vấn trực chat thứ Hai–Sáu, <c:out value="${q:officeHoursLabel()}" /> (trừ ngày nghỉ). Sinh viên có thể để lại tin nhắn chờ ngoài giờ.</div>
+<div class="alert alert-info mx-3 mt-3 small">Hệ thống hỗ trợ tư vấn trực tuyến 24/7. Cố vấn và sinh viên có thể trao đổi bất kỳ lúc nào.</div>
 
 <%@ include file="/WEB-INF/jsp/fragments/navbar.jspf" %>
 <div class="container py-4 advisor-chat-page">
