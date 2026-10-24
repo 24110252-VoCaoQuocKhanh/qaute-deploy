@@ -119,7 +119,11 @@
                         <sec:csrfInput /><input name="fullName" class="form-control" value="<c:out value='${u.hoTen}'/>" maxlength="100" required>
                         <input type="email" name="email" class="form-control" value="<c:out value='${u.email}'/>" maxlength="254" required>
                         <input name="phone" class="form-control" value="<c:out value='${u.soDienThoai}'/>">
-                        <select name="role" class="form-select"><option value="${u.vaiTro}"><c:out value="${u.vaiTro}" /></option><option value="SinhVien">Sinh viên</option><option value="CoVan">Cố vấn</option><option value="Admin">Admin</option></select>
+                        <select name="role" class="form-select">
+                            <c:if test="${u.vaiTro == 'Admin'}"><option value="Admin" selected>Admin</option></c:if>
+                            <option value="SinhVien" ${u.vaiTro == 'SinhVien' ? 'selected' : ''}>Sinh viên</option>
+                            <option value="CoVan" ${u.vaiTro == 'CoVan' ? 'selected' : ''}>Cố vấn</option>
+                        </select>
                         <select name="unitId" class="form-select"><option value="">Đơn vị cố vấn</option><c:forEach var="unit" items="${units}"><option value="${unit.maDonVi}" ${advisorProfiles[u.maTK].donVi.maDonVi == unit.maDonVi ? 'selected' : ''}><c:out value="${unit.tenDonVi}" /></option></c:forEach></select>
                         <button class="btn btn-sm btn-primary">Lưu thay đổi</button></form></details>
                         </td>

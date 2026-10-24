@@ -77,9 +77,18 @@
                         Chưa có tin nhắn nào trong phiên này. Hãy gửi tin nhắn đầu tiên!
                     </div>
 
-                    </c:if><c:forEach var="m" items="${messages}"><div data-message-id="${m.maTinNhan}" class="${m.taiKhoanGui.maTK == student.taiKhoan.maTK ? 'd-flex justify-content-end' : 'd-flex justify-content-start'}">
-                        <div class="${m.taiKhoanGui.maTK == student.taiKhoan.maTK ? 'chat-bubble-sender' : 'chat-bubble-receiver'}" >
-                            <c:if test="${not empty m.taiKhoanGui}"><div class="small fw-bold mb-1 opacity-75"><c:out value="${m.taiKhoanGui.hoTen}" /></div></c:if>
+                    </c:if><c:forEach var="m" items="${messages}">
+                    <c:set var="isOwn" value="${student.taiKhoan != null and m.taiKhoanGui != null and m.taiKhoanGui.maTK == student.taiKhoan.maTK}" />
+                    <div data-message-id="${m.maTinNhan}" class="${isOwn ? 'd-flex justify-content-end' : 'd-flex justify-content-start'}">
+                        <div class="${isOwn ? 'chat-bubble-sender' : 'chat-bubble-receiver'}" >
+                            <c:choose>
+                                <c:when test="${m.taiKhoanGui == null}">
+                                    <div class="small fw-bold mb-1 opacity-75">Hệ thống tư vấn</div>
+                                </c:when>
+                                <c:when test="${not empty m.taiKhoanGui and m.taiKhoanGui.maTK != student.taiKhoan.maTK}">
+                                    <div class="small fw-bold mb-1 opacity-75"><c:out value="${m.taiKhoanGui.hoTen}" /></div>
+                                </c:when>
+                            </c:choose>
                             <div style="white-space: pre-line;"><c:out value="${m.noiDungHienThi}" /></div>
                             <c:if test="${messageAttachments != null and messageAttachments[m.maTinNhan] != null}"><div class="mt-2"><c:forEach var="file" items="${messageAttachments[m.maTinNhan]}"><a class="btn btn-sm btn-light border" target="_blank" rel="noopener" href="${pageContext.request.contextPath}/attachments/${file.maTep}"><i class="bi bi-paperclip"></i> <span><c:out value="${file.tenGoc}" /></span></a></c:forEach></div>
                             </c:if><div class="text-end mt-1" style="font-size: 0.7rem; opacity: 0.7;"><c:out value="${q:formatTemporal(m.thoiGianGui, 'HH:mm')}" /></div>

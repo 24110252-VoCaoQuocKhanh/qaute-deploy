@@ -166,30 +166,36 @@ public class ChatService {
     }
 
     private void triggerAutoReply(PhienChat session, String text) {
+        if (text == null || text.isBlank()) return;
         var suggestion = ChatQuickGuide.forUnit(session.getDonVi().getMaDonViCode()).stream()
                 .filter(q -> q.question().equalsIgnoreCase(text.strip()) || q.label().equalsIgnoreCase(text.strip()))
                 .findFirst();
-        CauHoiFAQ faq = suggestion.isPresent() ? null : findBestMatchingFaq(text);
+
+        long studentMsgCount = tinNhanRepo.countByPhienChat_MaPhienChatAndTaiKhoanGui_MaTK(
+                session.getMaPhienChat(), session.getSinhVien().getTaiKhoan().getMaTK());
+
         String content;
         if (suggestion.isPresent()) {
+            // Khi sinh viên bấm các lựa chọn gợi ý bên dưới, hệ thống sẽ trả lời nội dung tương ứng
             content = suggestion.get().answer();
-        } else if (faq != null) {
-            String answer = faq.getCauTraLoi().strip();
-            if (answer.length() > 450) answer = answer.substring(0, 447) + "…";
-            content = answer + "\nXem thêm trong FAQ. Cần hỗ trợ thêm, bạn cứ nhắn tại đây.";
-        } else {
-            if (tinNhanRepo.countByPhienChat_MaPhienChatAndTaiKhoanGui_MaTK(
-                    session.getMaPhienChat(), session.getSinhVien().getTaiKhoan().getMaTK()) > 1) return;
+        } else if (studentMsgCount <= 1) {
+            // Tin nhắn đầu tiên của sinh viên (dù nhập nội dung gì): luôn gửi lời chào mẫu
             content = "Chào em " + session.getSinhVien().getTaiKhoan().getHoTen()
                     + (session.getSinhVien().getMssv() == null ? "" : " - " + session.getSinhVien().getMssv())
                     + ", em cần trợ giúp gì? Em có thể nhập câu hỏi hoặc chọn gợi ý bên dưới.";
+        } else {
+            // Các tin nhắn tiếp theo nếu không phải bấm gợi ý thì để cố vấn trả lời, không ngắt lời bằng FAQ
+            return;
         }
+
         TinNhanChat reply = tinNhanRepo.save(TinNhanChat.builder().phienChat(session)
                 .taiKhoanGui(null).clientMessageId(UUID.randomUUID()).loaiTinNhan("VanBan")
                 .noiDung(content).thoiGianGui(LocalDateTime.now(clock)).build());
-        events.publishEvent(new ChatDeliveryEvent(session.getSinhVien().getTaiKhoan().getTenDangNhap(), null,
+        events.publishEvent(new ChatDeliveryEvent(
+                session.getSinhVien().getTaiKhoan().getTenDangNhap(),
+                session.getNguoiTuVan() == null ? null : session.getNguoiTuVan().getTaiKhoan().getTenDangNhap(),
                 new ChatDeliveryEvent.Message(reply.getMaTinNhan(), session.getMaPhienChat(), null,
-                        "", reply.getNoiDungHienThi(), reply.getThoiGianGui())));
+                        "Hệ thống", reply.getNoiDungHienThi(), reply.getThoiGianGui())));
     }
 
     private CauHoiFAQ findBestMatchingFaq(String text) {
