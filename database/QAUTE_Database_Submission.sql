@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+﻿﻿/*******************************************************************************
    DỰ ÁN: HỆ THỐNG TƯ VẤN SINH VIÊN QAUTE (QAUTE ADVISORY PLATFORM)
    TỆP TIN CSDL: QAUTE_Database_Submission.sql
    MÔ TẢ: Toàn bộ cấu trúc Schema (DDL) và Dữ liệu thực tế (DML) từ Azure SQL
@@ -717,20 +717,28 @@ GO
 -- ============================================================================
 -- 7. TẠO CÁC VIEW BÁO CÁO VÀ TRA CỨU NGHIỆP VỤ (VIEWS)
 -- ============================================================================
-CREATE VIEW [dbo].[vw_BaiVietCongKhai] AS
- SELECT MaBaiViet,TieuDe,TomTat,NoiDung,TuKhoa,MaLinhVuc,LuotXem,NgayDang
+CREATE VIEW [dbo].[vw_BaiVietCongKhai] AS
+
+ SELECT MaBaiViet,TieuDe,TomTat,NoiDung,TuKhoa,MaLinhVuc,LuotXem,NgayDang
+
  FROM dbo.BaiVietHuongDan WHERE TrangThai='XuatBan';
 GO
 
-CREATE VIEW [dbo].[vw_FAQCongKhai] AS
- SELECT MaFAQ,CauHoi,CauTraLoi,MaLinhVuc,TuKhoa,LuotXem
+CREATE VIEW [dbo].[vw_FAQCongKhai] AS
+
+ SELECT MaFAQ,CauHoi,CauTraLoi,MaLinhVuc,TuKhoa,LuotXem
+
  FROM dbo.CauHoiFAQ WHERE TrangThai='HienThi';
 GO
 
-CREATE   VIEW dbo.vw_ThongKeYeuCauTheoNgay AS
- SELECT CAST(NgayTao AS date) AS NgayVietNam,MaDonVi,MaLinhVuc,COUNT_BIG(*) AS TongYeuCau,
- SUM(CAST(CASE WHEN TrangThai IN ('DaPhanHoi','Dong') THEN 1 ELSE 0 END AS bigint)) AS DaHoanTat,
- CAST(100.0*SUM(CASE WHEN TrangThai IN ('DaPhanHoi','Dong') THEN 1 ELSE 0 END)/NULLIF(COUNT_BIG(*),0) AS decimal(6,2)) AS TyLeHoanTat
+CREATE   VIEW dbo.vw_ThongKeYeuCauTheoNgay AS
+
+ SELECT CAST(NgayTao AS date) AS NgayVietNam,MaDonVi,MaLinhVuc,COUNT_BIG(*) AS TongYeuCau,
+
+ SUM(CAST(CASE WHEN TrangThai IN ('DaPhanHoi','Dong') THEN 1 ELSE 0 END AS bigint)) AS DaHoanTat,
+
+ CAST(100.0*SUM(CASE WHEN TrangThai IN ('DaPhanHoi','Dong') THEN 1 ELSE 0 END)/NULLIF(COUNT_BIG(*),0) AS decimal(6,2)) AS TyLeHoanTat
+
  FROM dbo.YeuCauTuVan GROUP BY CAST(NgayTao AS date),MaDonVi,MaLinhVuc;
 GO
 
@@ -1854,10 +1862,14 @@ GO
 -- ----------------------------------------------------------------------------
 SET IDENTITY_INSERT [dbo].[PhanHoiTuVan] ON;
 INSERT INTO [dbo].[PhanHoiTuVan] ([MaPhanHoi], [MaYeuCau], [MaTK_Gui], [LoaiPhanHoi], [NoiDungTraLoi], [NgayTraLoi], [DeXuatFAQ]) VALUES
-    (1, 18, 54, N'TraLoi', N'Chào em, theo Quy chế đào tạo của Nhà trường:
-1. Hạn chót nộp đơn xin rút học phần là trước tuần thứ 8 của học kỳ chính.
-2. Rút học phần trong thời hạn này sẽ nhận điểm ''W'' (không tính vào điểm trung bình tích lũy).
-3. Học phí của học phần đã rút sẽ không được hoàn trả, trừ trường hợp lớp bị hủy do Nhà trường sắp xếp.
+    (1, 18, 54, N'TraLoi', N'Chào em, theo Quy chế đào tạo của Nhà trường:
+
+1. Hạn chót nộp đơn xin rút học phần là trước tuần thứ 8 của học kỳ chính.
+
+2. Rút học phần trong thời hạn này sẽ nhận điểm ''W'' (không tính vào điểm trung bình tích lũy).
+
+3. Học phí của học phần đã rút sẽ không được hoàn trả, trừ trường hợp lớp bị hủy do Nhà trường sắp xếp.
+
 Em có thể tải biểu mẫu đơn rút học phần tại mục ''Biểu mẫu'' và nộp về Phòng Đào tạo nhé.', '2026-09-21 10:30:42.663', 0),
     (5, 58, 64, N'TraLoi', N'kkkkk', '2026-10-08 20:47:23.431', 0),
     (486, 614, 54, N'TraLoi', N'Em hãy rà soát tiến độ học tập, liệt kê các mục tiêu ưu tiên và chuẩn bị hồ sơ liên quan đến Học vụ và đăng ký học phần. Sau đó trao đổi với cố vấn của khoa để thống nhất kế hoạch từng tuần.', '2026-10-03 05:15:59.269', 0),
@@ -3375,43 +3387,71 @@ SET IDENTITY_INSERT [dbo].[TinNhanChat] ON;
 INSERT INTO [dbo].[TinNhanChat] ([MaTinNhan], [MaPhienChat], [MaTK_Gui], [ClientMessageId], [LoaiTinNhan], [NoiDung], [ThoiGianGui], [NgayXem]) VALUES
     (5, 18, 56, N'FD0C22E0-8547-40E9-A063-3AC94774B9EF', N'VanBan', N'hello', '2026-09-21 19:07:51.498', NULL),
     (6, 18, 56, N'D9F692BF-99F0-4751-A224-44591C9F5D55', N'VanBan', N'Làm thế nào để đăng ký vượt tín chỉ', '2026-09-21 19:17:44.717', NULL),
-    (7, 18, 54, N'550AE2F6-4F5A-4C48-8708-1A32AF4A2B82', N'VanBan', N'[🤖 Trả lời tự động]
-📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
-
-👉 Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?
-💬 Sinh viên có điểm trung bình chung tích lũy từ 3.2 trở lên có thể làm đơn xin đăng ký vượt tối đa 3 tín chỉ so với quy định chuẩn. Đơn gửi về Phòng Đào tạo trong tuần đầu tiên của đợt hiệu chỉnh đăng ký.
-
+    (7, 18, 54, N'550AE2F6-4F5A-4C48-8708-1A32AF4A2B82', N'VanBan', N'[🤖 Trả lời tự động]
+
+📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
+
+
+
+👉 Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?
+
+💬 Sinh viên có điểm trung bình chung tích lũy từ 3.2 trở lên có thể làm đơn xin đăng ký vượt tối đa 3 tín chỉ so với quy định chuẩn. Đơn gửi về Phòng Đào tạo trong tuần đầu tiên của đợt hiệu chỉnh đăng ký.
+
+
+
 💡 Nếu câu trả lời trên chưa giải đáp trọn vẹn, em hãy nhắn thêm chi tiết để Thầy/Cô tư vấn thêm nhé!', '2026-09-21 19:17:45.736', NULL),
     (8, 18, 56, N'B3B9CB83-321C-4E31-A7E6-744B08C22D60', N'VanBan', N'Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?', '2026-09-21 19:20:47.822', NULL),
-    (9, 18, 54, N'A365A3FF-5FD9-4DCF-A9B8-66A076675D64', N'VanBan', N'[🤖 Trả lời tự động]
-📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
-
-👉 Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?
-💬 Sinh viên có điểm trung bình chung tích lũy từ 3.2 trở lên có thể làm đơn xin đăng ký vượt tối đa 3 tín chỉ so với quy định chuẩn. Đơn gửi về Phòng Đào tạo trong tuần đầu tiên của đợt hiệu chỉnh đăng ký.
-
+    (9, 18, 54, N'A365A3FF-5FD9-4DCF-A9B8-66A076675D64', N'VanBan', N'[🤖 Trả lời tự động]
+
+📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
+
+
+
+👉 Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?
+
+💬 Sinh viên có điểm trung bình chung tích lũy từ 3.2 trở lên có thể làm đơn xin đăng ký vượt tối đa 3 tín chỉ so với quy định chuẩn. Đơn gửi về Phòng Đào tạo trong tuần đầu tiên của đợt hiệu chỉnh đăng ký.
+
+
+
 💡 Nếu câu trả lời trên chưa giải đáp trọn vẹn, em hãy nhắn thêm chi tiết để Thầy/Cô tư vấn thêm nhé!', '2026-09-21 19:20:48.834', NULL),
     (10, 18, 56, N'0F39E74C-A0F3-4273-8EB7-BA323106D7A9', N'VanBan', N'Quy trình xin cấp giấy xác nhận sinh viên để hoãn nghĩa vụ quân sự?', '2026-09-21 19:20:56.234', NULL),
-    (11, 18, 54, N'29768991-9489-47B8-A8B3-8B8D027471CC', N'VanBan', N'[🤖 Trả lời tự động]
-📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
-
-👉 Quy trình xin cấp giấy xác nhận sinh viên để hoãn nghĩa vụ quân sự?
-💬 Sinh viên đăng nhập vào cổng thông tin sinh viên, chọn mục ''Dịch vụ trực tuyến -> Đăng ký cấp giấy xác nhận'', chọn lý do ''Tạm hoãn NVQS''. Sau 02 ngày làm việc, sinh viên đến Phòng CTSV nhận giấy đóng dấu gốc hoặc tải bản ký số điện tử.
-
+    (11, 18, 54, N'29768991-9489-47B8-A8B3-8B8D027471CC', N'VanBan', N'[🤖 Trả lời tự động]
+
+📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
+
+
+
+👉 Quy trình xin cấp giấy xác nhận sinh viên để hoãn nghĩa vụ quân sự?
+
+💬 Sinh viên đăng nhập vào cổng thông tin sinh viên, chọn mục ''Dịch vụ trực tuyến -> Đăng ký cấp giấy xác nhận'', chọn lý do ''Tạm hoãn NVQS''. Sau 02 ngày làm việc, sinh viên đến Phòng CTSV nhận giấy đóng dấu gốc hoặc tải bản ký số điện tử.
+
+
+
 💡 Nếu câu trả lời trên chưa giải đáp trọn vẹn, em hãy nhắn thêm chi tiết để Thầy/Cô tư vấn thêm nhé!', '2026-09-21 19:20:57.244', NULL),
     (12, 18, 56, N'D8845B36-BEC6-4F32-972C-B66B06AE1433', N'VanBan', N'zzv', '2026-09-21 19:21:03.580', NULL),
     (13, 18, 56, N'1D3D5F39-1CD8-4933-821C-1CE83C8AC350', N'VanBan', N'Quy trình xin cấp giấy xác nhận sinh viên để hoãn nghĩa vụ quân sự?', '2026-09-21 19:21:24.227', NULL),
-    (14, 18, 54, N'09B1F827-E98C-41FD-9784-14F95063A7E8', N'VanBan', N'[🤖 Trả lời tự động]
-📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
-
-👉 Quy trình xin cấp giấy xác nhận sinh viên để hoãn nghĩa vụ quân sự?
-💬 Sinh viên đăng nhập vào cổng thông tin sinh viên, chọn mục ''Dịch vụ trực tuyến -> Đăng ký cấp giấy xác nhận'', chọn lý do ''Tạm hoãn NVQS''. Sau 02 ngày làm việc, sinh viên đến Phòng CTSV nhận giấy đóng dấu gốc hoặc tải bản ký số điện tử.
-
+    (14, 18, 54, N'09B1F827-E98C-41FD-9784-14F95063A7E8', N'VanBan', N'[🤖 Trả lời tự động]
+
+📌 Thầy/Cô gợi ý thông tin liên quan đến câu hỏi của em:
+
+
+
+👉 Quy trình xin cấp giấy xác nhận sinh viên để hoãn nghĩa vụ quân sự?
+
+💬 Sinh viên đăng nhập vào cổng thông tin sinh viên, chọn mục ''Dịch vụ trực tuyến -> Đăng ký cấp giấy xác nhận'', chọn lý do ''Tạm hoãn NVQS''. Sau 02 ngày làm việc, sinh viên đến Phòng CTSV nhận giấy đóng dấu gốc hoặc tải bản ký số điện tử.
+
+
+
 💡 Nếu câu trả lời trên chưa giải đáp trọn vẹn, em hãy nhắn thêm chi tiết để Thầy/Cô tư vấn thêm nhé!', '2026-09-21 19:21:25.243', NULL),
-    (15, 19, 54, N'0DFB74B8-B6AD-491B-BEC6-240997CE37BE', N'VanBan', N'[🤖 Trả lời tự động]
-Chào em Nguyễn Văn An! Thầy/Cô (ThS. Nguyễn Văn Bình - Phòng Đào tạo) đã kết nối với em.
+    (15, 19, 54, N'0DFB74B8-B6AD-491B-BEC6-240997CE37BE', N'VanBan', N'[🤖 Trả lời tự động]
+
+Chào em Nguyễn Văn An! Thầy/Cô (ThS. Nguyễn Văn Bình - Phòng Đào tạo) đã kết nối với em.
+
 Em có thể đặt câu hỏi chi tiết hoặc gõ từ khóa thắc mắc (ví dụ: ''rút học phần'', ''học bổng'', ''giấy xác nhận''...) để hệ thống hỗ trợ giải đáp nhanh nhất nhé!', '2026-09-21 19:31:35.642', NULL),
-    (16, 20, 55, N'55CE36D9-F72F-4155-AEDB-FF70CE25E3E8', N'VanBan', N'[🤖 Trả lời tự động]
-Chào em Nguyễn Văn An! Thầy/Cô (ThS. Lê Thị Ánh Tuyết - Phòng Công tác Sinh viên) đã kết nối với em.
+    (16, 20, 55, N'55CE36D9-F72F-4155-AEDB-FF70CE25E3E8', N'VanBan', N'[🤖 Trả lời tự động]
+
+Chào em Nguyễn Văn An! Thầy/Cô (ThS. Lê Thị Ánh Tuyết - Phòng Công tác Sinh viên) đã kết nối với em.
+
 Em có thể đặt câu hỏi chi tiết hoặc gõ từ khóa thắc mắc (ví dụ: ''rút học phần'', ''học bổng'', ''giấy xác nhận''...) để hệ thống hỗ trợ giải đáp nhanh nhất nhé!', '2026-09-21 19:31:36.892', NULL),
     (17, 21, 56, N'641DDE3E-2AAB-40A7-B70F-5AA9D2B69E7D', N'VanBan', N'Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?', '2026-09-21 19:31:46.780', NULL),
     (18, 23, 56, N'2E614528-9442-4325-BBD6-77806F67A660', N'VanBan', N'Làm thế nào để đăng ký học phần vượt quá số tín chỉ quy định?', '2026-09-25 01:40:00.638', NULL),
