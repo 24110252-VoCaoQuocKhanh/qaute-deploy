@@ -316,6 +316,9 @@ public class AppointmentService {
         if (maCV == null || !appointment.getNguoiTuVan().getMaCV().equals(maCV)) {
             throw new SecurityException("Bạn không có quyền xử lý lịch hẹn của cố vấn khác.");
         }
+        if (!Boolean.TRUE.equals(appointment.getNguoiTuVan().getNhanTuVan())) {
+            throw new IllegalStateException("Cố vấn này không phụ trách chức năng hẹn lịch tư vấn.");
+        }
     }
 
     public List<KhungGioTuVan> getAdvisorSlots(Integer maCV) {
@@ -327,6 +330,9 @@ public class AppointmentService {
         LocalDate monday = LocalDate.now(clock).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDateTime previousStart = monday.minusWeeks(1).atStartOfDay();
         LocalDateTime previousEnd = monday.atStartOfDay();
+        if (!Boolean.TRUE.equals(advisor.getNhanTuVan())) {
+            throw new IllegalStateException("Cố vấn này không phụ trách chức năng hẹn lịch tư vấn.");
+        }
         accountRepo.findLockedById(advisor.getTaiKhoan().getMaTK()).orElseThrow();
         int copied = 0;
         for (KhungGioTuVan source : slotRepo.findAdvisorSlotsInRange(advisor.getMaCV(), previousStart, previousEnd)) {
