@@ -36,12 +36,27 @@
         <i class="bi bi-exclamation-triangle-fill me-1"></i><span><c:out value="${errorMessage}" /></span>
     </div>
 
-    </c:if><!-- Role Filter -->
-    <div class="d-flex gap-2 mb-4">
-        <a href="${pageContext.request.contextPath}/admin/users" class="${selectedRole == null ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Tất cả</a>
-        <a href="${pageContext.request.contextPath}/admin/users?role=SinhVien" class="${selectedRole == 'SinhVien' ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Sinh viên</a>
-        <a href="${pageContext.request.contextPath}/admin/users?role=CoVan" class="${selectedRole == 'CoVan' ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Cố vấn học tập</a>
-        <a href="${pageContext.request.contextPath}/admin/users?role=Admin" class="${selectedRole == 'Admin' ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Quản trị viên</a>
+    </c:if><!-- Role Filter & Search -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="${pageContext.request.contextPath}/admin/users<c:if test='${not empty kw}'>?kw=${kw}</c:if>" class="${selectedRole == null ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Tất cả</a>
+            <a href="${pageContext.request.contextPath}/admin/users?role=SinhVien<c:if test='${not empty kw}'>&kw=${kw}</c:if>" class="${selectedRole == 'SinhVien' ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Sinh viên</a>
+            <a href="${pageContext.request.contextPath}/admin/users?role=CoVan<c:if test='${not empty kw}'>&kw=${kw}</c:if>" class="${selectedRole == 'CoVan' ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Cố vấn học tập</a>
+            <a href="${pageContext.request.contextPath}/admin/users?role=Admin<c:if test='${not empty kw}'>&kw=${kw}</c:if>" class="${selectedRole == 'Admin' ? 'btn btn-primary btn-sm rounded-pill px-3' : 'btn btn-outline-secondary btn-sm rounded-pill px-3'}">Quản trị viên</a>
+        </div>
+        <form method="get" action="${pageContext.request.contextPath}/admin/users" class="d-flex gap-2" style="max-width: 420px; width: 100%;">
+            <c:if test="${not empty selectedRole}">
+                <input type="hidden" name="role" value="${selectedRole}" />
+            </c:if>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="kw" value="<c:out value='${kw}'/>" class="form-control border-start-0 ps-0" placeholder="Tìm tên, username, email, SĐT..." />
+                <c:if test="${not empty kw}">
+                    <a href="${pageContext.request.contextPath}/admin/users<c:if test='${not empty selectedRole}'>?role=${selectedRole}</c:if>" class="btn btn-outline-secondary" title="Xóa tìm kiếm"><i class="bi bi-x"></i></a>
+                </c:if>
+                <button type="submit" class="btn btn-primary px-3">Tìm kiếm</button>
+            </div>
+        </form>
     </div>
 
     <!-- Users Table -->
@@ -64,22 +79,43 @@
                         <td><code class="fw-bold text-dark"><c:out value="${u.tenDangNhap}" /></code></td>
                         <td>
                             <div class="fw-semibold text-dark"><c:out value="${u.hoTen}" /></div>
-                            <c:if test="${u.vaiTro == 'CoVan' and advisorProfiles[u.maTK] != null}"><div class="small text-muted mt-1">
-                                <c:set var="advisor" value="${advisorProfiles[u.maTK]}" /><div><i class="bi bi-person-badge me-1"></i><span><c:out value="${advisor.maCanBo}" /></span></div>
-                                <div><i class="bi bi-building me-1"></i><span><c:out value="${advisor.donVi.tenDonVi}" /></span></div>
-                                <c:if test="${advisor.hocHamHocVi != null and not empty advisor.hocHamHocVi}"><div><c:out value="${advisor.hocHamHocVi += ' · ' += advisor.chucVu}" /></div>
-                                </c:if><div><c:out value="${advisor.chuyenMon}" /></div>
-                            </div>
-                        </c:if></td>
+                            <c:set var="st" value="${studentProfiles[u.maTK]}" />
+                            <c:set var="advisor" value="${advisorProfiles[u.maTK]}" />
+                            <c:if test="${st != null}"><div class="small text-muted mt-1">
+                                <div><i class="bi bi-mortarboard me-1"></i><span>MSSV: <c:out value="${st.mssv}" /></span><c:if test="${not empty st.lop}"> · <span><c:out value="${st.lop}" /></span></c:if></div>
+                                <c:if test="${not empty st.khoa}"><div><c:out value="${st.khoa}" /></div></c:if>
+                            </div></c:if>
+                            <c:if test="${advisor != null and (u.vaiTro == 'CoVan' or advisor.nhanTuVan)}"><div class="small text-muted mt-1">
+                                <div><i class="bi bi-person-badge me-1"></i><span><c:out value="${advisor.donVi.tenDonVi}" /> (<c:out value="${advisor.chucVu}" />)</span></div>
+                                <c:if test="${advisor.hocHamHocVi != null and not empty advisor.hocHamHocVi}"><div><c:out value="${advisor.hocHamHocVi}" /></div></c:if>
+                                <div><c:out value="${advisor.chuyenMon}" /></div>
+                            </div></c:if>
+                        </td>
                         <td class="small">
                             <div><c:out value="${u.email}" /></div>
                             <small class="text-muted"><c:out value="${u.soDienThoai != null ? u.soDienThoai : '-'}" /></small>
                         </td>
                         <td>
-                            <c:if test="${u.vaiTro == 'Admin'}"><span class="badge bg-danger-subtle text-danger border border-danger-subtle">Admin</span>
-                            </c:if><c:if test="${u.vaiTro == 'CoVan'}"><span class="badge bg-primary-subtle text-primary border border-primary-subtle">Cố vấn</span>
-                            </c:if><c:if test="${u.vaiTro == 'SinhVien'}"><span class="badge bg-success-subtle text-success border border-success-subtle">Sinh viên</span>
-                        </c:if></td>
+                            <c:set var="hasStudentRole" value="${st != null}" />
+                            <c:set var="hasAdvisorRole" value="${advisor != null and (u.vaiTro == 'CoVan' or advisor.nhanTuVan)}" />
+                            <c:choose>
+                                <c:when test="${u.vaiTro == 'Admin'}">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Admin</span>
+                                </c:when>
+                                <c:when test="${hasStudentRole and hasAdvisorRole}">
+                                    <div class="d-flex flex-column gap-1">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Sinh viên</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Cố vấn</span>
+                                    </div>
+                                </c:when>
+                                <c:when test="${hasAdvisorRole or u.vaiTro == 'CoVan'}">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Cố vấn</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Sinh viên</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
                         <td>
                             <c:if test="${u.trangThai == 'HoatDong'}"><span class="badge bg-success-subtle text-success">Hoạt động</span>
                             </c:if><c:if test="${u.trangThai == 'Khoa'}"><span class="badge bg-danger-subtle text-danger">Bị khóa</span>

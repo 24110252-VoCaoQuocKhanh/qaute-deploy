@@ -29,7 +29,10 @@ public class UserAccountService {
     private final NguoiTuVanRepository advisorRepo;
     private final DonViRepository unitRepo;
     private final com.example.TuVanSinhVien.repository.YeuCauTuVanRepository ticketRepo;
-    private final com.example.TuVanSinhVien.repository.LichHenTuVanRepository appointmentRepo;
+    
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private EmailService emailService;
+private final com.example.TuVanSinhVien.repository.LichHenTuVanRepository appointmentRepo;
 
     public UserAccountService(TaiKhoanRepository accountRepo, SinhVienRepository studentRepo, PasswordEncoder passwordEncoder,
                               NguoiTuVanRepository advisorRepo, DonViRepository unitRepo, com.example.TuVanSinhVien.repository.YeuCauTuVanRepository ticketRepo, com.example.TuVanSinhVien.repository.LichHenTuVanRepository appointmentRepo) {
@@ -172,63 +175,81 @@ public class UserAccountService {
         if(id.equals(actorId) && !role.equals(account.getVaiTro())) throw new IllegalArgumentException("Không được tự đổi vai trò quản trị của mình.");
         if("Admin".equals(account.getVaiTro()) && !"Admin".equals(role) && accountRepo.findByVaiTro("Admin").stream().filter(a -> "HoatDong".equals(a.getTrangThai())).count()<=1)
             throw new IllegalStateException("Phải giữ ít nhất một quản trị viên hoạt động.");
-        var studentOpt = studentRepo.findByTaiKhoan_MaTK(id);
-        if("SinhVien".equals(role) && studentOpt.isEmpty()) throw new IllegalArgumentException("Cần hồ sơ sinh viên trước khi phân vai trò Sinh viên.");
+        if("SinhVien".equals(role) && studentRepo.findByTaiKhoan_MaTK(id).isEmpty()) throw new IllegalArgumentException("Cần hồ sơ sinh viên trước khi phân vai trò Sinh viên.");
+        boolean wasStudent = "SinhVien".equals(account.getVaiTro());
+        boolean isNewAdvisor = "CoVan".equals(role);
+        DonVi assignedUnit = null;
+
         NguoiTuVan advisor=advisorRepo.findByTaiKhoan_MaTK(id).orElse(null);
         if("CoVan".equals(role)) {
-            DonVi unit = null;
-            if (unitId != null) {
-                unit = unitRepo.findById(unitId).orElseThrow(() -> new IllegalArgumentException("Đơn vị không tồn tại."));
-            } else if (advisor != null) {
-                unit = advisor.getDonVi();
-            } else if (studentOpt.isPresent()) {
-                String faculty = studentOpt.get().getKhoa();
-                unit = unitRepo.findByHoatDongTrue().stream()
-                        .filter(u -> faculty != null && (u.getTenDonVi().equalsIgnoreCase(faculty) || u.getTenDonVi().toLowerCase().contains(faculty.toLowerCase())))
-                        .findFirst()
-                        .orElseGet(() -> unitRepo.findByHoatDongTrue().stream().findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Cố vấn cần có đơn vị phụ trách.")));
-            } else {
-                throw new IllegalArgumentException("Cố vấn cần có đơn vị phụ trách.");
+            if(unitId==null && advisor==null) {
+                var studentOpt = studentRepo.findByTaiKhoan_MaTK(id);
+                if (studentOpt.isPresent() && studentOpt.get().getKhoa() != null) {
+                    String studentKhoa = studentOpt.get().getKhoa().trim();
+                    unitId = unitRepo.findAll().stream()
+                        .filter(u -> Boolean.TRUE.equals(u.getHoatDong()) &&
+                            (u.getTenDonVi().equalsIgnoreCase(studentKhoa) || studentKhoa.toLowerCase().contains(u.getTenDonVi().toLowerCase()) || u.getTenDonVi().toLowerCase().contains(studentKhoa.toLowerCase())))
+                        .map(DonVi::getMaDonVi)
+                        .findFirst().orElse(null);
+                }
             }
+            if(unitId==null && advisor==null) throw new IllegalArgumentException("Vui lòng chọn đơn vị phụ trách khi phân vai trò Cố vấn.");
+            DonVi unit = unitId != null ? unitRepo.findById(unitId).orElseThrow(() -> new IllegalArgumentException("Đơn vị không tồn tại.")) : (advisor != null ? advisor.getDonVi() : null);
+            if(unit == null) throw new IllegalArgumentException("Cố vấn cần có đơn vị phụ trách.");
             if(!Boolean.TRUE.equals(unit.getHoatDong())) throw new IllegalArgumentException("Đơn vị đã ngưng hoạt động.");
-
-            if(advisor == null) {
-                if (studentOpt.isEmpty()) {
-                    throw new IllegalArgumentException("Cần tạo/duyệt hồ sơ cố vấn trước khi phân vai trò Cố vấn.");
+            assignedUnit = unit;
+            if(advisor==null) {
+                var studentOpt = studentRepo.findByTaiKhoan_MaTK(id);
+                String maCanBo = studentOpt.map(SinhVien::getMssv).filter(m -> !m.isBlank()).orElse("CB" + id);
+                if (advisorRepo.findByMaCanBo(maCanBo).isPresent()) {
+                    maCanBo = "CB" + id;
                 }
-                var student = studentOpt.get();
-                String officerCode = "CV_" + (student.getMssv() != null ? student.getMssv() : String.valueOf(id));
-                if (officerCode.length() > 30) officerCode = officerCode.substring(0, 30);
-                if (advisorRepo.existsByMaCanBo(officerCode)) {
-                    officerCode = "CV_TK" + id;
-                }
-                advisor = advisorRepo.save(NguoiTuVan.builder()
-                        .maCanBo(officerCode)
-                        .hocHamHocVi(null)
-                        .chucVu("Cố vấn sinh viên")
-                        .chuyenMon("Tư vấn diễn đàn và chat trực tuyến")
-                        .donVi(unit)
-                        .taiKhoan(account)
-                        .nhanTuVan(false)
-                        .hanNgachTiepNhan(20)
-                        .build());
+                advisor = NguoiTuVan.builder()
+                    .taiKhoan(account)
+                    .donVi(unit)
+                    .maCanBo(maCanBo)
+                    .chucVu("Cố vấn sinh viên")
+                    .chuyenMon("Tư vấn học tập và giải đáp câu hỏi")
+                    .nhanTuVan(true)
+                    .hanNgachTiepNhan(20)
+                    .build();
             } else {
-                if (studentOpt.isPresent()) {
-                    advisor.setNhanTuVan(false);
-                }
-                if (!unit.getMaDonVi().equals(advisor.getDonVi().getMaDonVi())) {
-                    requireNoActiveWork(advisor);
-                }
+                if(advisor.getDonVi() != null && !unit.getMaDonVi().equals(advisor.getDonVi().getMaDonVi())) requireNoActiveWork(advisor);
                 advisor.setDonVi(unit);
+                advisor.setNhanTuVan(true);
+            }
+            advisorRepo.save(advisor);
+        }
+        if(advisor != null && !"CoVan".equals(role)) {
+            requireNoActiveWork(advisor);
+            try {
+                advisorRepo.delete(advisor);
+                advisorRepo.flush();
+                advisor = null;
+            } catch (Exception ex) {
+                advisor.setNhanTuVan(false);
                 advisorRepo.save(advisor);
             }
         }
-        if(advisor!=null && !"CoVan".equals(role)) { requireNoActiveWork(advisor); advisor.setNhanTuVan(false); advisorRepo.save(advisor); }
         if(phone!=null && !phone.isBlank() && !phone.matches("^(?:\\+84|0)[0-9]{9,10}$")) throw new IllegalArgumentException("Số điện thoại không hợp lệ.");
         account.setHoTen(fullName); account.setEmail(cleanEmail); account.setSoDienThoai(blankToNull(phone)); account.setVaiTro(role);
         account.setTokenVersion((account.getTokenVersion()==null?0:account.getTokenVersion())+1); account.setNgayCapNhat(LocalDateTime.now(clock));
         accountRepo.save(account);
+
+        if (emailService != null && isNewAdvisor && wasStudent) {
+            String unitName = assignedUnit != null ? assignedUnit.getTenDonVi() : "Đơn vị tư vấn";
+            emailService.sendAsyncNotification(
+                account.getEmail(),
+                "[QAUTE] Thông báo bổ nhiệm vai trò Cố vấn học tập",
+                account.getHoTen(),
+                "Bổ nhiệm vai trò Cố vấn học tập",
+                "Xin chúc mừng bạn! Bạn đã được Ban Quản trị phân công làm <strong>Cố vấn học tập</strong> phụ trách <strong>" + unitName + "</strong>.<br><br>"
+                    + "Tài khoản của bạn đã được kích hoạt chức năng cố vấn. Bạn có thể tham gia trả lời câu hỏi và chat tư vấn cho sinh viên tại <strong>Khu vực Cố vấn</strong>.<br>"
+                    + "Đồng thời, bạn <strong>vẫn giữ nguyên đầy đủ quyền lợi sinh viên</strong> và có thể tiếp tục sử dụng các chức năng hỏi đáp, tra cứu của sinh viên như bình thường.",
+                "/advisor/dashboard",
+                "Truy cập Khu vực Cố vấn"
+            );
+        }
     }
 
     @org.springframework.beans.factory.annotation.Autowired

@@ -37,6 +37,8 @@ import java.time.LocalDate;
 public class AdminController {
     @org.springframework.beans.factory.annotation.Autowired
     private com.example.TuVanSinhVien.service.ForumService forumService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.example.TuVanSinhVien.repository.SinhVienRepository sinhVienRepo;
     private final ReportService reportService;
     private final TaiKhoanRepository taiKhoanRepo;
     private final CatalogService catalogService;
@@ -146,21 +148,39 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public String users(@RequestParam(required = false) String role, @RequestParam(defaultValue="0") int page, Model model) {
-        String filter=role!=null && java.util.Set.of("Admin","CoVan","SinhVien").contains(role)?role:null;
-        var pageable=org.springframework.data.domain.PageRequest.of(Math.max(0,page),20,org.springframework.data.domain.Sort.by("maTK").descending());
-        var result=filter==null?taiKhoanRepo.findAll(pageable):taiKhoanRepo.findByVaiTro(filter,pageable);
-        if(result.getTotalPages()>0 && page>=result.getTotalPages()) {
-            pageable=org.springframework.data.domain.PageRequest.of(result.getTotalPages()-1,20,org.springframework.data.domain.Sort.by("maTK").descending());
-            result=filter==null?taiKhoanRepo.findAll(pageable):taiKhoanRepo.findByVaiTro(filter,pageable);
+    public String users(@RequestParam(required = false) String role,
+                        @RequestParam(required = false) String kw,
+                        @RequestParam(defaultValue = "0") int page,
+                        Model model) {
+        String filter = role != null && java.util.Set.of("Admin", "CoVan", "SinhVien").contains(role) ? role : null;
+        String keyword = kw != null ? kw.trim() : "";
+        var pageable = org.springframework.data.domain.PageRequest.of(Math.max(0, page), 20, org.springframework.data.domain.Sort.by("maTK").descending());
+        org.springframework.data.domain.Page<TaiKhoan> result;
+        if (!keyword.isEmpty()) {
+            result = taiKhoanRepo.searchUsers(filter, keyword, pageable);
+            if (result.getTotalPages() > 0 && page >= result.getTotalPages()) {
+                pageable = org.springframework.data.domain.PageRequest.of(result.getTotalPages() - 1, 20, org.springframework.data.domain.Sort.by("maTK").descending());
+                result = taiKhoanRepo.searchUsers(filter, keyword, pageable);
+            }
+        } else {
+            result = filter == null ? taiKhoanRepo.findAll(pageable) : taiKhoanRepo.findByVaiTro(filter, pageable);
+            if (result.getTotalPages() > 0 && page >= result.getTotalPages()) {
+                pageable = org.springframework.data.domain.PageRequest.of(result.getTotalPages() - 1, 20, org.springframework.data.domain.Sort.by("maTK").descending());
+                result = filter == null ? taiKhoanRepo.findAll(pageable) : taiKhoanRepo.findByVaiTro(filter, pageable);
+            }
         }
-        model.addAttribute("users",result.getContent()); model.addAttribute("pageData",result);
-        model.addAttribute("paginationPath","/admin/users");
+        model.addAttribute("users", result.getContent());
+        model.addAttribute("pageData", result);
+        model.addAttribute("paginationPath", "/admin/users");
         Map<Integer, NguoiTuVan> advisorProfiles = nguoiTuVanRepo.findAllWithAccountAndUnit().stream()
-                .collect(Collectors.toMap(advisor -> advisor.getTaiKhoan().getMaTK(), Function.identity()));
+                .collect(Collectors.toMap(advisor -> advisor.getTaiKhoan().getMaTK(), Function.identity(), (a, b) -> a));
         model.addAttribute("advisorProfiles", advisorProfiles);
+        Map<Integer, com.example.TuVanSinhVien.entity.SinhVien> studentProfiles = (sinhVienRepo != null ? sinhVienRepo.findAll() : java.util.List.<com.example.TuVanSinhVien.entity.SinhVien>of()).stream()
+                .collect(Collectors.toMap(s -> s.getTaiKhoan().getMaTK(), Function.identity(), (a, b) -> a));
+        model.addAttribute("studentProfiles", studentProfiles);
         model.addAttribute("units", catalogService.getAllActiveDonVi());
         model.addAttribute("selectedRole", filter);
+        model.addAttribute("kw", keyword);
         return "admin/users";
     }
 
